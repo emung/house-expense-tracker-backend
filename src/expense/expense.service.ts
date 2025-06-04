@@ -21,6 +21,14 @@ export class ExpenseService {
     });
   }
 
+  async getExpensesByCategory(ctx: RequestContext, category: string) {
+    this.logger.log(ctx, `Fetching expenses for category: ${category}`);
+    const expenses: Expense[] = await this.repository.getByCategory(category);
+    return expenses.map(expense => plainToClass(ExpenseOutput, expense, {
+      excludeExtraneousValues: true
+    }));
+  }
+
   async getAllExpenses(ctx: RequestContext) {
     this.logger.log(ctx, 'Fetching all expenses');
     const expenses: Expense[] = await this.repository.getAllExpenses();

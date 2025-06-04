@@ -1,4 +1,4 @@
-import { ClassSerializerInterceptor, Controller, Get, HttpStatus, Param, UseGuards, UseInterceptors } from '@nestjs/common';
+import { ClassSerializerInterceptor, Controller, Get, HttpStatus, Param, Query, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -43,10 +43,28 @@ export class ExpenseController {
     status: HttpStatus.NOT_FOUND,
     type: BaseApiErrorResponse,
   })
-  // @UseInterceptors(ClassSerializerInterceptor)
-  // @UseGuards(JwtAuthGuard)
-  // @ApiBearerAuth()
+  @UseInterceptors(ClassSerializerInterceptor)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   async getAllExpenses(ctx: RequestContext): Promise<ExpenseOutput[]> {
     return this.expenseService.getAllExpenses(ctx);
+  }
+
+  @Get('/category/:category')
+  @ApiOperation({summary: 'Get all expenses by category'})
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: SwaggerBaseApiResponse(ExpenseOutput),
+    isArray: true,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    type: BaseApiErrorResponse,
+  })
+  @UseInterceptors(ClassSerializerInterceptor)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  async getExpensesByCategory(ctx: RequestContext, @Query('category') category: string): Promise<ExpenseOutput[]> {
+    return this.expenseService.getExpensesByCategory(ctx, category);
   }
 }
