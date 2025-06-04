@@ -1,0 +1,32 @@
+import { Injectable } from '@nestjs/common';
+import { plainToClass } from 'class-transformer';
+
+import { AppLogger } from '../shared/logger/logger.service';
+import { RequestContext } from '../shared/request-context/request-context.dto';
+import { ExpenseOutput } from './dtos/expense-output.dto';
+import { Expense } from './entities/expense.entity';
+import { ExpenseRepository } from './expense.repository';
+
+@Injectable()
+export class ExpenseService {
+  constructor(private repository: ExpenseRepository, private readonly logger: AppLogger) {
+    this.logger.setContext(ExpenseService.name);
+  }
+
+  async getExpenseById(ctx: RequestContext, id: number) {
+    this.logger.log(ctx, `Fetching expense with ID: ${id}`);
+    const expense: Expense = await this.repository.getById(id);
+    return plainToClass(ExpenseOutput, expense, {
+      excludeExtraneousValues: true
+    });
+  }
+
+  async getAllExpenses(ctx: RequestContext) {
+    this.logger.log(ctx, 'Fetching all expenses');
+    const expenses: Expense[] = await this.repository.getAllExpenses();
+    return expenses.map(expense => plainToClass(ExpenseOutput, expense, {
+      excludeExtraneousValues: true
+    }));
+  }
+
+}
