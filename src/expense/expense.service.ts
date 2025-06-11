@@ -5,13 +5,17 @@ import { DeleteResult } from 'typeorm';
 import { AppLogger } from '../shared/logger/logger.service';
 import { RequestContext } from '../shared/request-context/request-context.dto';
 import { DeleteExpenseOutput } from './dtos/delete-expense-output.dto';
+import { CreateExpenseInput, UpdateExpenseInput } from './dtos/expense-input.dto';
 import { ExpenseOutput } from './dtos/expense-output.dto';
 import { Expense } from './entities/expense.entity';
 import { ExpenseRepository } from './expense.repository';
 
 @Injectable()
 export class ExpenseService {
-  constructor(private repository: ExpenseRepository, private readonly logger: AppLogger) {
+  constructor(
+    private repository: ExpenseRepository,
+    private readonly logger: AppLogger,
+  ) {
     this.logger.setContext(ExpenseService.name);
   }
 
@@ -19,32 +23,84 @@ export class ExpenseService {
     this.logger.log(ctx, `Fetching expense with ID: ${id}`);
     const expense: Expense = await this.repository.getById(id);
     return plainToClass(ExpenseOutput, expense, {
-      excludeExtraneousValues: true
+      excludeExtraneousValues: true,
     });
   }
 
   async getExpensesByCategory(ctx: RequestContext, category: string) {
     this.logger.log(ctx, `Fetching expenses for category: ${category}`);
     const expenses: Expense[] = await this.repository.getByCategory(category);
-    return expenses.map(expense => plainToClass(ExpenseOutput, expense, {
-      excludeExtraneousValues: true
-    }));
+    return expenses.map((expense) =>
+      plainToClass(ExpenseOutput, expense, {
+        excludeExtraneousValues: true,
+      }),
+    );
+  }
+
+  async getByDescription(ctx: RequestContext, description: string) {
+    this.logger.log(ctx, `Fetching expenses for description: ${description}`);
+    const expenses: Expense[] = await this.repository.getByDescription(description);
+    return expenses.map((expense) =>
+      plainToClass(ExpenseOutput, expense, {
+        excludeExtraneousValues: true,
+      }),
+    );
+  }
+
+  async getByCategoryAndDescription(ctx: RequestContext, category: string, description: string) {
+    this.logger.log(ctx, `Fetching expenses for category: ${category} and description: ${description}`);
+    const expenses: Expense[] = await this.repository.getByCategoryAndDescription(category, description);
+    return expenses.map((expense) =>
+      plainToClass(ExpenseOutput, expense, {
+        excludeExtraneousValues: true,
+      }),
+    );
   }
 
   async getAllExpenses(ctx: RequestContext) {
     this.logger.log(ctx, 'Fetching all expenses');
     const expenses: Expense[] = await this.repository.getAllExpenses();
-    return expenses.map(expense => plainToClass(ExpenseOutput, expense, {
-      excludeExtraneousValues: true
-    }));
+    return expenses.map((expense) =>
+      plainToClass(ExpenseOutput, expense, {
+        excludeExtraneousValues: true,
+      }),
+    );
   }
 
   async deleteExpenseById(ctx: RequestContext, id: number): Promise<DeleteExpenseOutput> {
     this.logger.log(ctx, `Deleting expense with ID: ${id}`);
     const result: DeleteResult = await this.repository.deleteExpenseById(id);
     return plainToClass(DeleteExpenseOutput, result, {
-      excludeExtraneousValues: true
+      excludeExtraneousValues: true,
     });
   }
 
+  async createExpense(ctx: RequestContext, input: CreateExpenseInput) {
+    this.logger.log(ctx, `Creating expense`);
+
+    const expense: Expense = plainToClass(Expense, input);
+    const savedExpense: Expense = await this.repository.createExpense(expense);
+    return plainToClass(ExpenseOutput, savedExpense, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  async updateExpense(ctx: RequestContext, id: number, input: UpdateExpenseInput) {
+    this.logger.log(ctx, `Updating expense with ID: ${id}`);
+    const expense: Expense = await this.repository.getById(id);
+    const updatedExpense: Expense = {
+      ...expense,
+      ...input,
+    };
+    const savedExpense: Expense = await this.repository.updateExpense(updatedExpense);
+    return plainToClass(ExpenseOutput, savedExpense, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  async getAllDistinctCategories(ctx: RequestContext): Promise<string[]> {
+    this.logger.log(ctx, 'Fetching all distinct categories');
+    const categories: string[] = await this.repository.getAllDistinctCategories();
+    return categories;
+  }
 }

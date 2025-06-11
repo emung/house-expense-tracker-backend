@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { DataSource, DeleteResult, Repository } from "typeorm";
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { DataSource, DeleteResult, ILike, Repository } from 'typeorm';
 
-import { Expense } from "./entities/expense.entity";
+import { Expense } from './entities/expense.entity';
 
 @Injectable()
 export class ExpenseRepository extends Repository<Expense> {
@@ -12,7 +12,7 @@ export class ExpenseRepository extends Repository<Expense> {
   async getById(id: number): Promise<Expense> {
     const expense = await this.findOne({ where: { id } });
     if (!expense) {
-      throw new NotFoundException();
+      throw new NotFoundException(`No expense found with ID=${id}`);
     }
     return expense;
   }
@@ -21,6 +21,22 @@ export class ExpenseRepository extends Repository<Expense> {
     const expenses = await this.find({ where: { category } });
     if (expenses.length === 0) {
       throw new NotFoundException(`No expenses found for category: ${category}`);
+    }
+    return expenses;
+  }
+
+  async getByDescription(description: string): Promise<Expense[]> {
+    const expenses = await this.find({ where: { description: ILike(`%${description}%`) } });
+    if (expenses.length === 0) {
+      throw new NotFoundException(`No expenses found for description: ${description}`);
+    }
+    return expenses;
+  }
+
+  async getByCategoryAndDescription(category: string, description: string): Promise<Expense[]> {
+    const expenses = await this.find({ where: { category, description: ILike(`%${description}%`) } });
+    if (expenses.length === 0) {
+      throw new NotFoundException(`No expenses found for category: ${category} and description: ${description}`);
     }
     return expenses;
   }
@@ -40,5 +56,18 @@ export class ExpenseRepository extends Repository<Expense> {
     }
 
     return await this.delete({ id });
+  }
+
+  async createExpense(expense: Expense): Promise<Expense> {
+    return await this.save(expense);
+  }
+
+  async updateExpense(expense: Expense): Promise<Expense> {
+    return await this.save(expense);
+  }
+
+  async getAllDistinctCategories(): Promise<string[]> {
+    const expenses = await this.createQueryBuilder('expense').select('expense.category').distinct(true).getRawMany();
+    return expenses.map((expense) => expense.expense_category);
   }
 }
