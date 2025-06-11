@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { DataSource, Repository } from "typeorm";
+import { DataSource, DeleteResult, Repository } from "typeorm";
 
 import { Expense } from "./entities/expense.entity";
 
@@ -31,5 +31,14 @@ export class ExpenseRepository extends Repository<Expense> {
       throw new NotFoundException('No expenses found');
     }
     return expenses;
+  }
+
+  async deleteExpenseById(id: number): Promise<DeleteResult> {
+    const expenseExists = await this.existsBy({ id });
+    if (!expenseExists) {
+      throw new NotFoundException(`No expense found with ID=${id}`);
+    }
+
+    return await this.delete({ id });
   }
 }

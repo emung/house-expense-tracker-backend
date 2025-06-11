@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { plainToClass } from 'class-transformer';
+import { DeleteResult } from 'typeorm';
 
 import { AppLogger } from '../shared/logger/logger.service';
 import { RequestContext } from '../shared/request-context/request-context.dto';
+import { DeleteExpenseOutput } from './dtos/delete-expense-output.dto';
 import { ExpenseOutput } from './dtos/expense-output.dto';
 import { Expense } from './entities/expense.entity';
 import { ExpenseRepository } from './expense.repository';
@@ -35,6 +37,14 @@ export class ExpenseService {
     return expenses.map(expense => plainToClass(ExpenseOutput, expense, {
       excludeExtraneousValues: true
     }));
+  }
+
+  async deleteExpenseById(ctx: RequestContext, id: number): Promise<DeleteExpenseOutput> {
+    this.logger.log(ctx, `Deleting expense with ID: ${id}`);
+    const result: DeleteResult = await this.repository.deleteExpenseById(id);
+    return plainToClass(DeleteExpenseOutput, result, {
+      excludeExtraneousValues: true
+    });
   }
 
 }
