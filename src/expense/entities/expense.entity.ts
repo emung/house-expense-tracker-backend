@@ -16,4 +16,7 @@ export class Expense {
 
   @Column({ type: 'varchar', length: 255 })
   category: string;
+
+  @Column({ type: 'varchar', length: 255 })
+  currency: string;
 }

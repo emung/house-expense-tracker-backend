@@ -16,6 +16,11 @@ export class CreateExpenseInput {
   @IsNotEmpty()
   @IsString()
   category: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  currency: string;
 }
 
 export class UpdateExpenseInput {
@@ -33,4 +38,9 @@ export class UpdateExpenseInput {
   @IsNotEmpty()
   @IsString()
   category: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  currency: string;
 }
