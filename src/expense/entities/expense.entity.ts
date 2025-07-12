@@ -2,6 +2,11 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 import { ColumnNumericTransformer } from '../../shared/transformer/column-numeric-transformer';
 
+export enum Currency {
+  EUR = 'EUR',
+  RON = 'RON',
+}
+
 @Entity('expenses')
 export class Expense {
   @PrimaryGeneratedColumn()
@@ -19,6 +24,6 @@ export class Expense {
   @Column({ type: 'varchar', length: 255 })
   category: string;
 
-  @Column({ type: 'varchar', length: 255 })
-  currency: string;
+  @Column({ type: 'enum', enum: Currency })
+  currency: Currency;
 }
