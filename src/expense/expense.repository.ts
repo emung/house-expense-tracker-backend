@@ -33,14 +33,6 @@ export class ExpenseRepository extends Repository<Expense> {
     return expenses;
   }
 
-  async getByCategoryAndDescription(category: string, description: string): Promise<Expense[]> {
-    const expenses = await this.find({ where: { category, description: ILike(`%${description}%`) } });
-    if (expenses.length === 0) {
-      throw new NotFoundException(`No expenses found for category: ${category} and description: ${description}`);
-    }
-    return expenses;
-  }
-
   async getAllExpenses(): Promise<Expense[]> {
     const expenses = await this.find();
     if (expenses.length === 0) {
