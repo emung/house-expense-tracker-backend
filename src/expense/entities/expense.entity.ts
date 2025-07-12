@@ -1,11 +1,13 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
+import { ColumnNumericTransformer } from '../../shared/transformer/column-numeric-transformer';
+
 @Entity('expenses')
 export class Expense {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  @Column({ type: 'numeric', precision: 10, scale: 2, transformer: new ColumnNumericTransformer() })
   amount: number;
 
   @Column({ name: 'date_added' })
