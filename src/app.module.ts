@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -9,7 +11,19 @@ import { SharedModule } from './shared/shared.module';
 import { UserModule } from './user/user.module';
 
 @Module({
-  imports: [SharedModule, UserModule, AuthModule, ArticleModule, ExpenseModule],
+  imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', '..', 'public'),
+      // serveStaticOptions: {
+      //   fallthrough: false,
+      // },
+    }),
+    SharedModule,
+    UserModule,
+    AuthModule,
+    ArticleModule,
+    ExpenseModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
