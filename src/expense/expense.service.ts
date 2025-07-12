@@ -6,6 +6,7 @@ import { AppLogger } from '../shared/logger/logger.service';
 import { RequestContext } from '../shared/request-context/request-context.dto';
 import { DeleteExpenseOutput } from './dtos/delete-expense-output.dto';
 import { CreateExpenseInput, UpdateExpenseInput } from './dtos/expense-input.dto';
+import { ExpensesOutput } from './dtos/expense-multiple-output.dto';
 import { ExpenseOutput } from './dtos/expense-output.dto';
 import { Expense } from './entities/expense.entity';
 import { ExpenseRepository } from './expense.repository';
@@ -30,31 +31,19 @@ export class ExpenseService {
   async getExpensesByCategory(ctx: RequestContext, category: string) {
     this.logger.log(ctx, `Fetching expenses for category: ${category}`);
     const expenses: Expense[] = await this.repository.getByCategory(category);
-    return expenses.map((expense) =>
-      plainToClass(ExpenseOutput, expense, {
-        excludeExtraneousValues: true,
-      }),
-    );
+    return this.getExpensesWithSumOrReturnExpensesWhenEmpty(expenses);
   }
 
   async getByDescription(ctx: RequestContext, description: string) {
     this.logger.log(ctx, `Fetching expenses for description: ${description}`);
     const expenses: Expense[] = await this.repository.getByDescription(description);
-    return expenses.map((expense) =>
-      plainToClass(ExpenseOutput, expense, {
-        excludeExtraneousValues: true,
-      }),
-    );
+    return this.getExpensesWithSumOrReturnExpensesWhenEmpty(expenses);
   }
 
   async getAllExpenses(ctx: RequestContext) {
     this.logger.log(ctx, 'Fetching all expenses');
     const expenses: Expense[] = await this.repository.getAllExpenses();
-    return expenses.map((expense) =>
-      plainToClass(ExpenseOutput, expense, {
-        excludeExtraneousValues: true,
-      }),
-    );
+    return this.getExpensesWithSumOrReturnExpensesWhenEmpty(expenses);
   }
 
   async deleteExpenseById(ctx: RequestContext, id: number): Promise<DeleteExpenseOutput> {
@@ -92,5 +81,31 @@ export class ExpenseService {
     this.logger.log(ctx, 'Fetching all distinct categories');
     const categories: string[] = await this.repository.getAllDistinctCategories();
     return categories;
+  }
+
+  getExpensesSum(expenses: Expense[]): number {
+    return expenses.reduce((sum, expense) => sum + expense.amount, 0);
+  }
+
+  getExpensesWithSumOrReturnExpensesWhenEmpty(expenses: Expense[]) {
+    let expensesOutput: ExpensesOutput = {
+      sum: 0,
+      amount: 0,
+      expenses: [],
+    };
+    if (expenses.length === 0) {
+      return expensesOutput;
+    }
+
+    expensesOutput = {
+      sum: this.getExpensesSum(expenses),
+      amount: expenses.length,
+      expenses: expenses.map((expense) =>
+        plainToClass(ExpenseOutput, expense, {
+          excludeExtraneousValues: true,
+        }),
+      ),
+    };
+    return expensesOutput;
   }
 }

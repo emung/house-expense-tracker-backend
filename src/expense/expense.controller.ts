@@ -21,6 +21,7 @@ import { AppLogger } from '../shared/logger/logger.service';
 import { RequestContext } from '../shared/request-context/request-context.dto';
 import { DeleteExpenseOutput } from './dtos/delete-expense-output.dto';
 import { CreateExpenseInput, UpdateExpenseInput } from './dtos/expense-input.dto';
+import { ExpensesOutput } from './dtos/expense-multiple-output.dto';
 import { ExpenseOutput } from './dtos/expense-output.dto';
 import { GetByCategoryQueryDto } from './dtos/get-by-category-query.dto';
 import { GetByDescriptionQueryDto } from './dtos/get-by-description-query.dto';
@@ -75,7 +76,7 @@ export class ExpenseController {
     status: HttpStatus.NOT_FOUND,
     type: BaseApiErrorResponse,
   })
-  async getExpensesByCategory(ctx: RequestContext, @Query() query: GetByCategoryQueryDto): Promise<ExpenseOutput[]> {
+  async getExpensesByCategory(ctx: RequestContext, @Query() query: GetByCategoryQueryDto): Promise<ExpensesOutput> {
     try {
       return this.expenseService.getExpensesByCategory(ctx, query.category);
     } catch (error: any) {
@@ -100,7 +101,7 @@ export class ExpenseController {
     status: HttpStatus.NOT_FOUND,
     type: BaseApiErrorResponse,
   })
-  async getByDescription(ctx: RequestContext, @Query() query: GetByDescriptionQueryDto): Promise<ExpenseOutput[]> {
+  async getByDescription(ctx: RequestContext, @Query() query: GetByDescriptionQueryDto): Promise<ExpensesOutput> {
     try {
       return this.expenseService.getByDescription(ctx, query.description);
     } catch (error: any) {
@@ -143,7 +144,7 @@ export class ExpenseController {
     status: HttpStatus.NOT_FOUND,
     type: BaseApiErrorResponse,
   })
-  async getAllExpenses(ctx: RequestContext): Promise<ExpenseOutput[]> {
+  async getAllExpenses(ctx: RequestContext): Promise<ExpensesOutput> {
     try {
       return this.expenseService.getAllExpenses(ctx);
     } catch (error: any) {
