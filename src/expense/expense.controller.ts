@@ -9,6 +9,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -21,6 +22,8 @@ import { RequestContext } from '../shared/request-context/request-context.dto';
 import { DeleteExpenseOutput } from './dtos/delete-expense-output.dto';
 import { CreateExpenseInput, UpdateExpenseInput } from './dtos/expense-input.dto';
 import { ExpenseOutput } from './dtos/expense-output.dto';
+import { GetByCategoryQueryDto } from './dtos/get-by-category-query.dto';
+import { GetByDescriptionQueryDto } from './dtos/get-by-description-query.dto';
 import { ExpenseService } from './expense.service';
 
 @ApiTags('Expenses')
@@ -58,8 +61,58 @@ export class ExpenseController {
     }
   }
 
+  @Get('by-category')
+  @ApiOperation({
+    summary: 'Get all expenses by category',
+    description: 'Get all expenses by category. The category is case sensitive. ILIKE is not used.',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: ExpenseOutput,
+    isArray: true,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    type: BaseApiErrorResponse,
+  })
+  async getExpensesByCategory(ctx: RequestContext, @Query() query: GetByCategoryQueryDto): Promise<ExpenseOutput[]> {
+    try {
+      return this.expenseService.getExpensesByCategory(ctx, query.category);
+    } catch (error: any) {
+      throw new HttpException(
+        `An error occured during the operation 'getExpensesByCategory': ${error.message}`,
+        error.status || error.statusCode || 500,
+      );
+    }
+  }
+
+  @Get('by-description')
+  @ApiOperation({
+    summary: 'Get all expenses by description',
+    description: 'Get all expenses by description. The description is case insensitive. ILIKE is used.',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: ExpenseOutput,
+    isArray: true,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    type: BaseApiErrorResponse,
+  })
+  async getByDescription(ctx: RequestContext, @Query() query: GetByDescriptionQueryDto): Promise<ExpenseOutput[]> {
+    try {
+      return this.expenseService.getByDescription(ctx, query.description);
+    } catch (error: any) {
+      throw new HttpException(
+        `An error occured during the operation 'getByDescription': ${error.message}`,
+        error.status || error.statusCode || 500,
+      );
+    }
+  }
+
   @Get(':id')
-  @ApiOperation({ summary: 'Get expense by ID' })
+  @ApiOperation({ summary: 'Get an expense by ID' })
   @ApiResponse({
     status: HttpStatus.OK,
     type: ExpenseOutput,
@@ -72,7 +125,10 @@ export class ExpenseController {
     try {
       return this.expenseService.getExpenseById(ctx, id);
     } catch (error: any) {
-      throw new HttpException(`An error occured during the operation 'getExpenseById': ${error.message}`, error.status || error.statusCode || 500);
+      throw new HttpException(
+        `An error occured during the operation 'getExpenseById': ${error.message}`,
+        error.status || error.statusCode || 500,
+      );
     }
   }
 
@@ -91,72 +147,8 @@ export class ExpenseController {
     try {
       return this.expenseService.getAllExpenses(ctx);
     } catch (error: any) {
-      throw new HttpException(`An error occured during the operation 'getAllExpenses': ${error.message}`, error.status || error.statusCode || 500);
-    }
-  }
-
-  @Get('category/:category')
-  @ApiOperation({ summary: 'Get all expenses by category (exact match!)' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    type: ExpenseOutput,
-    isArray: true,
-  })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    type: BaseApiErrorResponse,
-  })
-  async getExpensesByCategory(ctx: RequestContext, @Param('category') category: string): Promise<ExpenseOutput[]> {
-    try {
-      return this.expenseService.getExpensesByCategory(ctx, category);
-    } catch (error: any) {
       throw new HttpException(
-        `An error occured during the operation 'getExpensesByCategory': ${error.message}`,
-        error.status || error.statusCode || 500,
-      );
-    }
-  }
-
-  @Get('description/:description')
-  @ApiOperation({ summary: 'Get all expenses by description (ILIKE on description)' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    type: ExpenseOutput,
-    isArray: true,
-  })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    type: BaseApiErrorResponse,
-  })
-  async getByDescription(ctx: RequestContext, @Param('description') description: string): Promise<ExpenseOutput[]> {
-    try {
-      return this.expenseService.getByDescription(ctx, description);
-    } catch (error: any) {
-      throw new HttpException(`An error occured during the operation 'getByDescription': ${error.message}`, error.status || error.statusCode || 500);
-    }
-  }
-
-  @Get('category/:category/description/:description')
-  @ApiOperation({ summary: 'Get all expenses by category and description (ILIKE on description)' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    type: ExpenseOutput,
-    isArray: true,
-  })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    type: BaseApiErrorResponse,
-  })
-  async getByCategoryAndDescription(
-    ctx: RequestContext,
-    @Param('category') category: string,
-    @Param('description') description: string,
-  ): Promise<ExpenseOutput[]> {
-    try {
-      return this.expenseService.getByCategoryAndDescription(ctx, category, description);
-    } catch (error: any) {
-      throw new HttpException(
-        `An error occured during the operation 'getByCategoryAndDescription': ${error.message}`,
+        `An error occured during the operation 'getAllExpenses': ${error.message}`,
         error.status || error.statusCode || 500,
       );
     }
@@ -176,7 +168,10 @@ export class ExpenseController {
     try {
       return await this.expenseService.deleteExpenseById(ctx, id);
     } catch (error: any) {
-      throw new HttpException(`An error occured during the operation 'deleteExpenseById': ${error.message}`, error.status || error.statusCode || 500);
+      throw new HttpException(
+        `An error occured during the operation 'deleteExpenseById': ${error.message}`,
+        error.status || error.statusCode || 500,
+      );
     }
   }
 
@@ -194,7 +189,10 @@ export class ExpenseController {
     try {
       return await this.expenseService.createExpense(ctx, input);
     } catch (error: any) {
-      throw new HttpException(`An error occured during the operation 'createExpense': ${error.message}`, error.status || error.statusCode || 500);
+      throw new HttpException(
+        `An error occured during the operation 'createExpense': ${error.message}`,
+        error.status || error.statusCode || 500,
+      );
     }
   }
 
@@ -212,11 +210,18 @@ export class ExpenseController {
     status: HttpStatus.BAD_REQUEST,
     type: BaseApiErrorResponse,
   })
-  async updateExpense(ctx: RequestContext, @Param('id') id: number, @Body() input: UpdateExpenseInput): Promise<ExpenseOutput> {
+  async updateExpense(
+    ctx: RequestContext,
+    @Param('id') id: number,
+    @Body() input: UpdateExpenseInput,
+  ): Promise<ExpenseOutput> {
     try {
       return await this.expenseService.updateExpense(ctx, id, input);
     } catch (error: any) {
-      throw new HttpException(`An error occured during the operation 'updateExpense': ${error.message}`, error.status || error.statusCode || 500);
+      throw new HttpException(
+        `An error occured during the operation 'updateExpense': ${error.message}`,
+        error.status || error.statusCode || 500,
+      );
     }
   }
 }
