@@ -98,7 +98,6 @@ document.addEventListener('DOMContentLoaded', () => {
   /**
    * Fetches all expenses and renders them in the table.
    */
-  // TODO: edit this
   async function loadExpenses() {
     showLoading(true);
     try {
@@ -223,8 +222,9 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify(newExpense),
       });
       addExpenseForm.reset();
-      loadExpenses(); // Refresh list
-      loadCategories(); // Refresh categories in case a new one was added
+      loadExpenses();
+      loadCategories();
+      toastr.success('Expense added successfully');
     } catch (error) {
       console.error('Failed to add expense:', error);
       alert(error.message);
@@ -239,6 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (target.classList.contains('delete-btn')) {
       try {
         await api.call(`/expenses/${id}`, { method: 'DELETE' });
+        toastr.success('Expense deleted successfully');
         loadExpenses(); // Refresh list
       } catch (error) {
         console.error('Failed to delete expense:', error);
@@ -284,6 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
       editModal.classList.add('hidden');
       loadExpenses(); // Refresh list
       loadCategories();
+      toastr.success('Expense updated successfully');
     } catch (error) {
       console.error('Failed to update expense:', error);
       alert(error.message);
@@ -298,7 +300,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Logout Button
   logoutButton.addEventListener('click', logout);
 
-  // TODO: change to make the REST call only when ENTER key is pressed
   // Filter Handlers
   searchDescriptionInput.addEventListener('keypress', async (e) => {
     if (e.key === 'Enter') {
