@@ -28,25 +28,36 @@
         <!-- Summary Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div class="bg-white p-6 rounded-xl shadow-lg">
-                <h3 class="text-lg font-semibold text-gray-500">Total Expenses</h3>
+                <h3 class="text-lg font-semibold text-gray-500">Total Expenses in EUR</h3>
                 <p id="total-sum-eur" class="text-4xl font-bold text-blue-600 mt-2">EUR 0.00</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-lg">
+                <h3 class="text-lg font-semibold text-gray-500">Number of expenses in EUR</h3>
+                <p id="total-amount-eur" class="text-4xl font-bold text-green-600 mt-2">0</p>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-xl shadow-lg">
+                <h3 class="text-lg font-semibold text-gray-500">Total Expenses in RON</h3>
                 <p id="total-sum-ron" class="text-4xl font-bold text-blue-600 mt-2">RON 0.00</p>
             </div>
             <div class="bg-white p-6 rounded-xl shadow-lg">
-                <h3 class="text-lg font-semibold text-gray-500">Number of expenses</h3>
-                <p id="total-amount-eur" class="text-4xl font-bold text-green-600 mt-2">0 expenses in EUR</p>
-                <p id="total-amount-ron" class="text-4xl font-bold text-green-600 mt-2">0 expenses in RON</p>
+                <h3 class="text-lg font-semibold text-gray-500">Number of expenses in RON</h3>
+                <p id="total-amount-ron" class="text-4xl font-bold text-green-600 mt-2">0</p>
             </div>
         </div>
+        
 
         <!-- Add Expense & Filters Section -->
         <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
             <h2 class="text-xl font-bold text-gray-800 mb-4">Add New Expense</h2>
             <form id="add-expense-form" class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
-                <input type="number" id="amount" placeholder="Amount" step=".01" required class="form-input">
-                <input type="text" id="description" placeholder="Description" required class="form-input">
-                <input type="text" id="category" placeholder="Category" required class="form-input">
-                <select id="currency" required class="form-input">
+                <input type="number" id="amount" placeholder="Amount" required class="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <input type="text" id="description" placeholder="Description" required class="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <input type="text" id="category" placeholder="Category" required class="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <select id="currency" required class="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     <option value="EUR">EUR</option>
                     <option value="RON">RON</option>
                 </select>
@@ -57,8 +68,8 @@
 
             <h2 class="text-xl font-bold text-gray-800 mb-4">Filters</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input type="text" id="search-description" placeholder="Search by description..." class="form-input">
-                <select id="search-category" class="form-input">
+                <input type="text" id="search-description" placeholder="Search by description..." class="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <select id="search-category" class="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     <option value="">All Categories</option>
                 </select>
             </div>
@@ -97,19 +108,19 @@
                 <input type="hidden" id="edit-id">
                 <div>
                     <label for="edit-amount">Amount</label>
-                    <input type="number" id="edit-amount" required class="form-input mt-1">
+                    <input type="number" id="edit-amount" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                 </div>
                 <div>
                     <label for="edit-description">Description</label>
-                    <input type="text" id="edit-description" required class="form-input mt-1">
+                    <input type="text" id="edit-description" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                 </div>
                 <div>
                     <label for="edit-category">Category</label>
-                    <input type="text" id="edit-category" required class="form-input mt-1">
+                    <input type="text" id="edit-category" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                 </div>
                 <div>
                     <label for="edit-currency">Currency</label>
-                    <select id="edit-currency" required class="form-input mt-1">
+                    <select id="edit-currency" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         <option value="EUR">EUR</option>
                         <option value="RON">RON</option>
                     </select>

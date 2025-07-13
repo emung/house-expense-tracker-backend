@@ -178,8 +178,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateSummary(sumEur, amountEur, sumRon, amountRon) {
     totalSumEuroEl.textContent = `EUR ${(sumEur || 0).toFixed(2)}`;
     totalSumRonEl.textContent = `RON ${(sumRon || 0).toFixed(2)}`;
-    totalAmountEurEl.textContent = `${amountEur || 0} expenses in EUR`;
-    totalAmountRonEl.textContent = `${amountRon || 0} expenses in RON`;
+    totalAmountEurEl.textContent = `${amountEur || 0}`;
+    totalAmountRonEl.textContent = `${amountRon || 0}`;
   }
 
   /**
