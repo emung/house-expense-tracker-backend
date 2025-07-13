@@ -151,7 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     expenses.forEach((expense) => {
       const row = document.createElement('tr');
-      row.className = 'hover:bg-gray-50';
+      row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700';
       row.innerHTML = `
               <td class="p-4">${expense.id}</td>
               <td class="p-4">${new Date(expense.date).toLocaleDateString()}</td>
