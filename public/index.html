@@ -1,11 +1,94 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>House Expense Tracker - Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body>
-  <h1>House Expense Tracker</h1>
-  <p>Backend server is running at http://localhost:3000/api/v1</p>
+<body class="bg-gray-100 font-sans">
+
+    <div class="container mx-auto flex items-center justify-center min-h-screen">
+        <div class="w-full max-w-md">
+            
+            <!-- Main Card -->
+            <div id="auth-card" class="bg-white rounded-lg shadow-2xl p-8 transition-all duration-500">
+                <h2 id="form-title" class="text-3xl font-bold text-center text-gray-800 mb-2">Login</h2>
+                <p class="text-center text-gray-500 mb-8">Welcome back to your Expense Tracker</p>
+
+                <!-- Error Message Display -->
+                <div id="error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-6" role="alert">
+                    <strong class="font-bold">Error!</strong>
+                    <span class="block sm:inline" id="error-text"></span>
+                </div>
+
+                <!-- Login Form -->
+                <form id="login-form" class="space-y-6">
+                    <div>
+                        <label for="login-username" class="text-sm font-medium text-gray-700">Username</label>
+                        <input type="text" id="login-username" name="username" required
+                               class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label for="login-password" class="text-sm font-medium text-gray-700">Password</label>
+                        <input type="password" id="login-password" name="password" required
+                               class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <button type="submit"
+                                class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                            Sign In
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Registration Form (Initially Hidden) -->
+                <form id="register-form" class="hidden space-y-4">
+                     <div>
+                        <label for="register-name" class="text-sm font-medium text-gray-700">Full Name</label>
+                        <input type="text" id="register-name" name="name" required
+                               class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label for="register-username" class="text-sm font-medium text-gray-700">Username</label>
+                        <input type="text" id="register-username" name="username" required
+                               class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label for="register-email" class="text-sm font-medium text-gray-700">Email Address</label>
+                        <input type="email" id="register-email" name="email" required
+                               class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label for="register-password" class="text-sm font-medium text-gray-700">Password</label>
+                        <input type="password" id="register-password" name="password" required minlength="6"
+                               class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <button type="submit"
+                                class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
+                            Create Account
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Toggle Link -->
+                <div class="mt-6 text-center">
+                    <p class="text-sm text-gray-600">
+                        <span id="toggle-text">Don't have an account?</span>
+                        <a href="#" id="toggle-link" class="font-medium text-blue-600 hover:text-blue-500">
+                            Register here
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
 </body>
 </html>
