@@ -24,6 +24,9 @@ export class Expense {
   @Column({ type: 'varchar', length: 255 })
   category: string;
 
+  @Column({ type: 'varchar', length: 255 })
+  recipient: string;
+
   @Column({ type: 'enum', enum: Currency })
   currency: Currency;
 }

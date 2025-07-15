@@ -21,6 +21,11 @@ export class CreateExpenseInput {
 
   @ApiProperty()
   @IsNotEmpty()
+  @IsString()
+  recipient: string;
+
+  @ApiProperty({ enum: Currency })
+  @IsNotEmpty()
   @IsEnum(Currency)
   currency: Currency;
 }
@@ -40,6 +45,11 @@ export class UpdateExpenseInput {
   @IsNotEmpty()
   @IsString()
   category: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  recipient: string;
 
   @ApiProperty({ enum: Currency })
   @IsNotEmpty()

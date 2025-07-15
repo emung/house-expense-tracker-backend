@@ -157,6 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <td class="p-4">${new Date(expense.date).toLocaleDateString()}</td>
               <td class="p-4">${expense.description}</td>
               <td class="p-4"><span class="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full">${expense.category}</span></td>
+              <td class="p-4">${expense.recipient}</td>
               <td class="p-4 font-semibold">${expense.amount.toFixed(2)} ${expense.currency}</td>
               <td class="p-4 space-x-2">
                   <button class="edit-btn text-yellow-500 hover:text-yellow-700" data-id="${expense.id}">Edit</button>
@@ -213,6 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
       amount: parseFloat(document.getElementById('amount').value),
       description: document.getElementById('description').value,
       category: document.getElementById('category').value,
+      recipient: document.getElementById('recipient').value,
       currency: document.getElementById('currency').value,
     };
 
@@ -257,6 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('edit-amount').value = expense.amount;
         document.getElementById('edit-description').value = expense.description;
         document.getElementById('edit-category').value = expense.category;
+        document.getElementById('edit-recipient').value = expense.recipient;
         document.getElementById('edit-currency').value = expense.currency;
         editModal.classList.remove('hidden');
       } catch (error) {
@@ -274,6 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
       amount: parseFloat(document.getElementById('edit-amount').value),
       description: document.getElementById('edit-description').value,
       category: document.getElementById('edit-category').value,
+      recipient: document.getElementById('edit-recipient').value,
       currency: document.getElementById('edit-currency').value,
     };
 

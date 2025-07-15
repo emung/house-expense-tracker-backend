@@ -11,6 +11,7 @@ export class CreateExpenses1748958076000 implements MigrationInterface {
         date_added TIMESTAMP NOT NULL DEFAULT now(),
         description VARCHAR(255) NOT NULL,
         category VARCHAR(255) NOT NULL,
+        recipient VARCHAR(255) NOT NULL,
         currency VARCHAR(255) NOT NULL)`);
     }
 

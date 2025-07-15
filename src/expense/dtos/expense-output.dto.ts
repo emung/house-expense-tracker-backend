@@ -24,5 +24,9 @@ export class ExpenseOutput {
 
   @Expose()
   @ApiProperty()
+  recipient: string;
+
+  @Expose()
+  @ApiProperty()
   currency: string;
 }
