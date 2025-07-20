@@ -6,6 +6,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ArticleModule } from './article/article.module';
 import { AuthModule } from './auth/auth.module';
+import { ContractorModule } from './contractor/contractor.module';
 import { ExpenseModule } from './expense/expense.module';
 import { SharedModule } from './shared/shared.module';
 import { UserModule } from './user/user.module';
@@ -23,6 +24,7 @@ import { UserModule } from './user/user.module';
     AuthModule,
     ArticleModule,
     ExpenseModule,
+    ContractorModule,
   ],
   controllers: [AppController],
   providers: [AppService],
