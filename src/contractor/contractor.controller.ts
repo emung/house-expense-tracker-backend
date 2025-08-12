@@ -17,6 +17,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ContractorService } from './contractor.service';
 import { ContractorDto } from './dto/contractor.dto';
 import { CreateContractorDto } from './dto/create-contractor.dto';
+import { DeleteContractorDto } from './dto/delete-contractor.dto';
 import { UpdateContractorDto } from './dto/update-contractor.dto';
 
 @ApiTags('Contractors')
@@ -28,27 +29,30 @@ export class ContractorController {
   constructor(private readonly contractorService: ContractorService) {}
 
   @Post()
-  create(@Body() createContractorDto: CreateContractorDto): Promise<ContractorDto> {
+  async create(@Body() createContractorDto: CreateContractorDto): Promise<ContractorDto> {
     return this.contractorService.create(createContractorDto);
   }
 
   @Get()
-  findAll() {
+  async findAll(): Promise<ContractorDto[]> {
     return this.contractorService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.contractorService.findOne(id);
+  @Get(':name')
+  async findOne(@Param('name') name: string): Promise<ContractorDto> {
+    return this.contractorService.findOne(name);
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateContractorDto: UpdateContractorDto) {
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateContractorDto: UpdateContractorDto,
+  ): Promise<ContractorDto> {
     return this.contractorService.update(id, updateContractorDto);
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
+  async remove(@Param('id', ParseIntPipe) id: number): Promise<DeleteContractorDto> {
     return this.contractorService.remove(id);
   }
 }

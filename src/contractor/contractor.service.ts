@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { plainToClass } from 'class-transformer';
+import { DeleteResult } from 'typeorm';
 
 import { ContractorRepository } from './contractor.repository';
 import { ContractorDto } from './dto/contractor.dto';
 import { CreateContractorDto } from './dto/create-contractor.dto';
+import { DeleteContractorDto } from './dto/delete-contractor.dto';
 import { UpdateContractorDto } from './dto/update-contractor.dto';
 import { Contractor } from './entities/contractor.entity';
 
@@ -27,15 +29,18 @@ export class ContractorService {
     return plainToClass(ContractorDto, savedContractor, { excludeExtraneousValues: true });
   }
 
-  findAll() {
-    return `This action returns all contractor`;
+  async findAll() {
+    const contractors: Contractor[] = await this.repository.getAllContractors();
+    return contractors.map((contractor) => plainToClass(ContractorDto, contractor, { excludeExtraneousValues: true }));
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} contractor`;
+  async findOne(name: string) {
+    const contractor: Contractor = await this.repository.getByName(name);
+    return plainToClass(ContractorDto, contractor, { excludeExtraneousValues: true });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} contractor`;
+  async remove(id: number) {
+    const deleteResult: DeleteResult = await this.repository.deleteContractorById(id);
+    return plainToClass(DeleteContractorDto, deleteResult, { excludeExtraneousValues: true });
   }
 }

@@ -1,6 +1,7 @@
 import { Expose } from 'class-transformer';
 
 export class ContractorDto {
+  @Expose()
   id: number;
 
   @Expose()

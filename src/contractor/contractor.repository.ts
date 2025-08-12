@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { DataSource,Repository } from 'typeorm';
+import { DataSource, DeleteResult, Repository } from 'typeorm';
 
 import { Contractor } from './entities/contractor.entity';
 
@@ -20,7 +20,7 @@ export class ContractorRepository extends Repository<Contractor> {
   async getAllContractors(): Promise<Contractor[]> {
     const contractors = await this.find();
     if (contractors.length === 0) {
-      throw new NotFoundException('No contractors found');
+      return [];
     }
     return contractors;
   }
@@ -39,5 +39,9 @@ export class ContractorRepository extends Repository<Contractor> {
 
   async updateContractor(contractor: Contractor): Promise<Contractor> {
     return this.save(contractor);
+  }
+
+  async deleteContractorById(id: number): Promise<DeleteResult> {
+    return this.delete({ id });
   }
 }
