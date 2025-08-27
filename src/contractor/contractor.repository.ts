@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { DataSource, DeleteResult, Repository } from 'typeorm';
+import { DataSource, DeleteResult, ILike, Repository } from 'typeorm';
 
 import { Contractor } from './entities/contractor.entity';
 
@@ -25,12 +25,12 @@ export class ContractorRepository extends Repository<Contractor> {
     return contractors;
   }
 
-  async getByName(name: string): Promise<Contractor> {
-    const contractor = await this.findOne({ where: { name } });
-    if (!contractor) {
-      throw new NotFoundException(`No contractor found with name: ${name}`);
+  async getByName(name: string): Promise<Contractor[]> {
+    const contractors = await this.find({ where: { name: ILike(`%${name}%`) } });
+    if (contractors.length === 0) {
+      return [];
     }
-    return contractor;
+    return contractors;
   }
 
   async createContractor(contractor: Contractor): Promise<Contractor> {

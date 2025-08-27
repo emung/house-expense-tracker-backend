@@ -29,17 +29,22 @@ export class ContractorService {
     return plainToClass(ContractorDto, savedContractor, { excludeExtraneousValues: true });
   }
 
-  async findAll() {
+  async findAll(): Promise<ContractorDto[]> {
     const contractors: Contractor[] = await this.repository.getAllContractors();
     return contractors.map((contractor) => plainToClass(ContractorDto, contractor, { excludeExtraneousValues: true }));
   }
 
-  async findOne(name: string) {
-    const contractor: Contractor = await this.repository.getByName(name);
+  async findByName(name: string): Promise<ContractorDto[]> {
+    const contractors: Contractor[] = await this.repository.getByName(name);
+    return contractors.map((contractor) => plainToClass(ContractorDto, contractor, { excludeExtraneousValues: true }));
+  }
+
+  async findOneById(id: number): Promise<ContractorDto> {
+    const contractor: Contractor = await this.repository.getById(id);
     return plainToClass(ContractorDto, contractor, { excludeExtraneousValues: true });
   }
 
-  async remove(id: number) {
+  async remove(id: number): Promise<DeleteContractorDto> {
     const deleteResult: DeleteResult = await this.repository.deleteContractorById(id);
     return plainToClass(DeleteContractorDto, deleteResult, { excludeExtraneousValues: true });
   }

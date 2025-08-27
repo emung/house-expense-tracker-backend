@@ -38,9 +38,14 @@ export class ContractorController {
     return this.contractorService.findAll();
   }
 
-  @Get(':name')
-  async findOne(@Param('name') name: string): Promise<ContractorDto> {
-    return this.contractorService.findOne(name);
+  @Get('/name/:name')
+  async findByName(@Param('name') name: string): Promise<ContractorDto[]> {
+    return this.contractorService.findByName(name);
+  }
+
+  @Get(':id')
+  async findOneById(@Param('id', ParseIntPipe) id: number): Promise<ContractorDto> {
+    return this.contractorService.findOneById(id);
   }
 
   @Patch(':id')
