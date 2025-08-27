@@ -20,7 +20,7 @@ export class ExpenseRepository extends Repository<Expense> {
   async getByCategory(category: string): Promise<Expense[]> {
     const expenses = await this.find({ where: { category } });
     if (expenses.length === 0) {
-      throw new NotFoundException(`No expenses found for category: ${category}`);
+      return [];
     }
     return expenses;
   }
@@ -28,7 +28,7 @@ export class ExpenseRepository extends Repository<Expense> {
   async getByDescription(description: string): Promise<Expense[]> {
     const expenses = await this.find({ where: { description: ILike(`%${description}%`) } });
     if (expenses.length === 0) {
-      throw new NotFoundException(`No expenses found for description: ${description}`);
+      return [];
     }
     return expenses;
   }
@@ -36,7 +36,7 @@ export class ExpenseRepository extends Repository<Expense> {
   async getAllExpenses(): Promise<Expense[]> {
     const expenses = await this.find();
     if (expenses.length === 0) {
-      throw new NotFoundException('No expenses found');
+      return [];
     }
     return expenses;
   }
