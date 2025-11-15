@@ -1,6 +1,7 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 import { ColumnNumericTransformer } from '../../shared/transformer/column-numeric-transformer';
+import { User } from '../../user/entities/user.entity';
 
 export enum Currency {
   EUR = 'EUR',
@@ -29,4 +30,11 @@ export class Expense {
 
   @Column({ type: 'enum', enum: Currency })
   currency: Currency;
+
+  @ManyToOne(() => User, (user) => user.expenses)
+  @JoinColumn([{ name: 'userId', referencedColumnName: 'id' }])
+  user: User;
+
+  @Column({ type: 'int' })
+  userId: number;
 }
