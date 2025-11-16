@@ -216,6 +216,8 @@ document.addEventListener('DOMContentLoaded', () => {
       category: document.getElementById('category').value,
       recipient: document.getElementById('recipient').value,
       currency: document.getElementById('currency').value,
+      // fill the userId with the one from the local storage
+      userId: 1,
     };
 
     try {
