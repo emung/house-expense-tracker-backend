@@ -32,9 +32,9 @@ export class Expense {
   currency: Currency;
 
   @ManyToOne(() => User, (user) => user.expenses)
-  @JoinColumn([{ name: 'userId', referencedColumnName: 'id' }])
+  @JoinColumn([{ name: 'user_id', referencedColumnName: 'id' }])
   user: User;
 
-  @Column({ type: 'int' })
+  @Column({ name: 'user_id', type: 'int' })
   userId: number;
 }
