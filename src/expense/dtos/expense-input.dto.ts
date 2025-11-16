@@ -28,6 +28,11 @@ export class CreateExpenseInput {
   @IsNotEmpty()
   @IsEnum(Currency)
   currency: Currency;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsNumber()
+  userId: number;
 }
 
 export class UpdateExpenseInput {
@@ -55,4 +60,9 @@ export class UpdateExpenseInput {
   @IsNotEmpty()
   @IsEnum(Currency)
   currency: Currency;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsNumber()
+  userId: number;
 }

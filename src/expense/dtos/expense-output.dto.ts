@@ -29,4 +29,8 @@ export class ExpenseOutput {
   @Expose()
   @ApiProperty()
   currency: string;
+
+  @Expose()
+  @ApiProperty()
+  userId: number;
 }
