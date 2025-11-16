@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify(data),
       });
 
+      // The userId should be inside here
       const result = await response.json();
 
       if (!response.ok) {
