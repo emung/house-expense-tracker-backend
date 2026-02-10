@@ -117,30 +117,12 @@
             </div>
         </div>
 
-        <!-- Expenses Table -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead class="bg-gray-100 dark:bg-gray-700">
-                        <tr>
-                            <th class="p-4 font-semibold text-gray-600 dark:text-gray-300">ID</th>
-                            <th class="p-4 font-semibold text-gray-600 dark:text-gray-300">Date</th>
-                            <th class="p-4 font-semibold text-gray-600 dark:text-gray-300">Description</th>
-                            <th class="p-4 font-semibold text-gray-600 dark:text-gray-300">Category</th>
-                            <th class="p-4 font-semibold text-gray-600 dark:text-gray-300">Recipient</th>
-                            <th class="p-4 font-semibold text-gray-600 dark:text-gray-300">Amount</th>
-                            <th class="p-4 font-semibold text-gray-600 dark:text-gray-300">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="expenses-table-body"
-                        class="divide-y divide-gray-200 dark:divide-gray-600 text-gray-700 dark:text-gray-300">
-                        <!-- Rows will be inserted here by JavaScript -->
-                    </tbody>
-                </table>
-                <div id="loading-spinner" class="text-center p-8 hidden">
-                    <p class="text-gray-500 dark:text-gray-400">Loading expenses...</p>
-                </div>
-            </div>
+        <!-- Expenses List -->
+        <div id="expenses-list" class="space-y-4">
+            <!-- Cards will be inserted here by JavaScript -->
+        </div>
+        <div id="loading-spinner" class="text-center p-8 hidden">
+            <p class="text-gray-500 dark:text-gray-400">Loading expenses...</p>
         </div>
     </main>
 

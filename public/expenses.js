@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const API_BASE_URL = '/api/v1';
 
   // --- DOM Elements ---
-  const expensesTableBody = document.getElementById('expenses-table-body');
+  const expensesList = document.getElementById('expenses-list');
   const addExpenseForm = document.getElementById('add-expense-form');
   const logoutButton = document.getElementById('logout-button');
   const loadingSpinner = document.getElementById('loading-spinner');
@@ -142,29 +142,35 @@ document.addEventListener('DOMContentLoaded', () => {
    * @param {Array<Object>} expenses - The array of expenses.
    */
   function renderExpenses(expenses) {
-    expensesTableBody.innerHTML = '';
+    expensesList.innerHTML = '';
     if (!expenses || expenses.length === 0) {
-      expensesTableBody.innerHTML =
-        '<tr><td colspan="6" class="text-center p-8 text-gray-500">No expenses found.</td></tr>';
+      expensesList.innerHTML = '<div class="text-center p-8 text-gray-500 dark:text-gray-400">No expenses found.</div>';
       return;
     }
 
     expenses.forEach((expense) => {
-      const row = document.createElement('tr');
-      row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700';
-      row.innerHTML = `
-              <td class="p-4">${expense.id}</td>
-              <td class="p-4">${new Date(expense.date).toLocaleDateString()}</td>
-              <td class="p-4">${expense.description}</td>
-              <td class="p-4"><span class="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full">${expense.category}</span></td>
-              <td class="p-4">${expense.recipient}</td>
-              <td class="p-4 font-semibold">${expense.amount.toFixed(2)} ${expense.currency}</td>
-              <td class="p-4 space-x-2">
-                  <button class="edit-btn text-yellow-500 hover:text-yellow-700" data-id="${expense.id}">Edit</button>
-                  <button class="delete-btn text-red-500 hover:text-red-700" data-id="${expense.id}">Delete</button>
-              </td>
-          `;
-      expensesTableBody.appendChild(row);
+      const card = document.createElement('div');
+      card.className = 'bg-white dark:bg-gray-800 rounded-xl shadow-lg p-5 transition hover:shadow-xl';
+      card.innerHTML = `
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap mb-1">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white truncate">${expense.description}</h3>
+              <span class="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300 text-xs font-medium px-2.5 py-0.5 rounded-full whitespace-nowrap">${expense.category}</span>
+            </div>
+            <p class="text-sm text-gray-500 dark:text-gray-400">${expense.recipient}</p>
+            <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">${new Date(expense.date).toLocaleDateString()} &middot; #${expense.id}</p>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <p class="text-xl font-bold ${expense.currency === 'EUR' ? 'text-blue-600 dark:text-blue-400' : 'text-green-600 dark:text-green-400'}">${expense.amount.toFixed(2)} ${expense.currency}</p>
+            <div class="mt-2 flex gap-2 justify-end">
+              <button class="edit-btn text-sm font-medium text-yellow-600 hover:text-yellow-800 dark:text-yellow-400 dark:hover:text-yellow-300" data-id="${expense.id}">Edit</button>
+              <button class="delete-btn text-sm font-medium text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300" data-id="${expense.id}">Delete</button>
+            </div>
+          </div>
+        </div>
+      `;
+      expensesList.appendChild(card);
     });
   }
 
@@ -198,10 +204,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function showLoading(isLoading) {
     if (isLoading) {
       loadingSpinner.classList.remove('hidden');
-      expensesTableBody.classList.add('hidden');
+      expensesList.classList.add('hidden');
     } else {
       loadingSpinner.classList.add('hidden');
-      expensesTableBody.classList.remove('hidden');
+      expensesList.classList.remove('hidden');
     }
   }
 
@@ -236,7 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Edit and Delete Buttons (using event delegation)
-  expensesTableBody.addEventListener('click', async (e) => {
+  expensesList.addEventListener('click', async (e) => {
     const target = e.target;
     const id = target.dataset.id;
 
