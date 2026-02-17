@@ -10,12 +10,10 @@ import {
   Patch,
   Post,
   Query,
-  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { BaseApiErrorResponse } from '../shared/dtos/base-api-response.dto';
 import { AppLogger } from '../shared/logger/logger.service';
 import { RequestContext } from '../shared/request-context/request-context.dto';
@@ -30,8 +28,6 @@ import { ExpenseService } from './expense.service';
 @ApiTags('Expenses')
 @Controller('expenses')
 @UseInterceptors(ClassSerializerInterceptor)
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
 export class ExpenseController {
   constructor(
     private readonly expenseService: ExpenseService,
