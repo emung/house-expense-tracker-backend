@@ -78,9 +78,26 @@ sudo systemctl stop house-expense-tracker
 sudo journalctl -u house-expense-tracker -f
 ```
 
+## Upgrading
+
+When a new version is available, run the upgrade script:
+
+```bash
+sudo bash upgrade.sh
+```
+
+This takes **3–5 minutes** and will:
+- Download the latest version from GitHub
+- **Preserve** your database, `.env` configuration, and JWT keys
+- Rebuild the app and run any new database migrations
+- Restart the service automatically
+
+> **Note:** The upgrade log is saved to `/var/log/house-expense-tracker-upgrade.log`
+
 ## Logs
 
 - **Install log:** `/var/log/house-expense-tracker-install.log`
+- **Upgrade log:** `/var/log/house-expense-tracker-upgrade.log`
 - **Runtime logs:** `sudo journalctl -u house-expense-tracker`
 
 ## Troubleshooting
