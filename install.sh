@@ -215,7 +215,7 @@ build_app() {
     npm install --production=false --legacy-peer-deps >> "$LOG_FILE" 2>&1 \
         || die "Failed to install npm dependencies."
 
-    npm install express >> "$LOG_FILE" 2>&1 \
+    npm install express --legacy-peer-deps >> "$LOG_FILE" 2>&1 \
         || die "Failed to install express."
 
     log_ok "npm dependencies installed"
