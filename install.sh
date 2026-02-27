@@ -212,7 +212,7 @@ EOF
 build_app() {
     log_info "Installing npm dependencies (this may take a few minutes)..."
     cd "$APP_DIR"
-    npm install --production=false >> "$LOG_FILE" 2>&1 \
+    npm install --production=false --legacy-peer-deps >> "$LOG_FILE" 2>&1 \
         || die "Failed to install npm dependencies."
     log_ok "npm dependencies installed"
 
