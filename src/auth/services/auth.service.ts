@@ -61,7 +61,7 @@ export class AuthService {
     this.logger.log(ctx, `${this.register.name} was called`);
 
     // TODO : Setting default role as USER here. Will add option to change this later via ADMIN users.
-    input.roles = [ROLE.USER];
+    input.roles = [ROLE.ADMIN];
     input.isAccountDisabled = false;
 
     const registeredUser = await this.userService.createUser(ctx, input);
