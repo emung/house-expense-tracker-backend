@@ -103,14 +103,11 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const result = await api.call('/expenses');
 
-      const expensesByEuro = result.expenses.filter((expense) => expense.currency === 'EUR');
-      const expensesByEuroSum = expensesByEuro.reduce((acc, expense) => acc + expense.amount, 0);
-
-      const expensesByRon = result.expenses.filter((expense) => expense.currency === 'RON');
-      const expensesByRonSum = expensesByRon.reduce((acc, expense) => acc + expense.amount, 0);
+      const eurSumData = result.sums?.find(s => s.currency === 'EUR');
+      const ronSumData = result.sums?.find(s => s.currency === 'RON');
 
       renderExpenses(result.expenses);
-      updateSummary(expensesByEuroSum, expensesByEuro.length, expensesByRonSum, expensesByRon.length);
+      updateSummary(eurSumData?.sum, eurSumData?.count, ronSumData?.sum, ronSumData?.count);
     } catch (error) {
       console.error('Failed to load expenses:', error);
       alert(error.message); // Simple error feedback
@@ -319,7 +316,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (description.length > 2) {
         try {
           const result = await api.call(`/expenses/by-description?description=${description}`);
+          const eurSumData = result.sums?.find(s => s.currency === 'EUR');
+          const ronSumData = result.sums?.find(s => s.currency === 'RON');
+
           renderExpenses(result.expenses);
+          updateSummary(eurSumData?.sum, eurSumData?.count, ronSumData?.sum, ronSumData?.count);
         } catch (error) {
           console.error('Error searching by description', error);
         }
@@ -334,7 +335,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (category) {
       try {
         const result = await api.call(`/expenses/by-category?category=${category}`);
+        const eurSumData = result.sums?.find(s => s.currency === 'EUR');
+        const ronSumData = result.sums?.find(s => s.currency === 'RON');
+
         renderExpenses(result.expenses);
+        updateSummary(eurSumData?.sum, eurSumData?.count, ronSumData?.sum, ronSumData?.count);
       } catch (error) {
         console.error('Error searching by category', error);
       }
