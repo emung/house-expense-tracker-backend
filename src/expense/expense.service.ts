@@ -4,6 +4,7 @@ import { DeleteResult } from 'typeorm';
 
 import { AppLogger } from '../shared/logger/logger.service';
 import { RequestContext } from '../shared/request-context/request-context.dto';
+import { CurrencySumOutput } from './dtos/currency-sum-output.dto';
 import { DeleteExpenseOutput } from './dtos/delete-expense-output.dto';
 import { CreateExpenseInput, UpdateExpenseInput } from './dtos/expense-input.dto';
 import { ExpensesOutput } from './dtos/expense-multiple-output.dto';
@@ -83,13 +84,20 @@ export class ExpenseService {
     return categories;
   }
 
-  getExpensesSum(expenses: Expense[]): number {
-    return expenses.reduce((sum, expense) => sum + expense.amount, 0);
+  getExpensesSum(expenses: Expense[]): CurrencySumOutput[] {
+    const sumsByCurrency = new Map<string, number>();
+    for (const expense of expenses) {
+      const current = sumsByCurrency.get(expense.currency) ?? 0;
+      sumsByCurrency.set(expense.currency, current + expense.amount);
+    }
+    return Array.from(sumsByCurrency.entries()).map(([currency, sum]) =>
+      plainToClass(CurrencySumOutput, { currency, sum }, { excludeExtraneousValues: true }),
+    );
   }
 
   getExpensesWithSumOrReturnExpensesWhenEmpty(expenses: Expense[]) {
     let expensesOutput: ExpensesOutput = {
-      sum: 0,
+      sums: [],
       amount: 0,
       expenses: [],
     };
@@ -98,7 +106,7 @@ export class ExpenseService {
     }
 
     expensesOutput = {
-      sum: this.getExpensesSum(expenses),
+      sums: this.getExpensesSum(expenses),
       amount: expenses.length,
       expenses: expenses.map((expense) =>
         plainToClass(ExpenseOutput, expense, {

@@ -1,12 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 
+import { CurrencySumOutput } from './currency-sum-output.dto';
 import { ExpenseOutput } from './expense-output.dto';
 
 export class ExpensesOutput {
   @Expose()
-  @ApiProperty()
-  sum: number;
+  @ApiProperty({ type: [CurrencySumOutput], isArray: true })
+  sums: CurrencySumOutput[];
 
   @Expose()
   @ApiProperty()
