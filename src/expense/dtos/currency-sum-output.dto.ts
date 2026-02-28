@@ -9,4 +9,8 @@ export class CurrencySumOutput {
   @Expose()
   @ApiProperty()
   sum: number;
+
+  @Expose()
+  @ApiProperty()
+  count: number;
 }
