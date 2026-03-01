@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsEnum, IsISO8601, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 import { Currency } from '../entities/expense.entity';
 
@@ -23,6 +23,10 @@ export class CreateExpenseInput {
   @IsNotEmpty()
   @IsString()
   recipient: string;
+
+  @ApiPropertyOptional()
+  @IsISO8601()
+  date?: Date;
 
   @ApiProperty({ enum: Currency })
   @IsNotEmpty()
@@ -65,4 +69,9 @@ export class UpdateExpenseInput {
   @IsNotEmpty()
   @IsNumber()
   userId: number;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsISO8601()
+  date: Date;
 }
