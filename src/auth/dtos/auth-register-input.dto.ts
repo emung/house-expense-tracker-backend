@@ -23,7 +23,7 @@ export class RegisterInput {
 
   @ApiProperty()
   @IsNotEmpty()
-  @Length(6, 100)
+  @Length(4, 100)
   @IsString()
   password: string;
 
