@@ -195,6 +195,21 @@ download_and_replace_ui() {
     log_ok "UI files updated"
 }
 
+# === Configure UI ===
+configure_ui() {
+    log_info "Configuring UI API endpoint..."
+    local constants_file="${UI_DIR}/src/server/constants.ts"
+    
+    if [[ -f "$constants_file" ]]; then
+        # Replace the API_BASE_URL with localhost:3000
+        sed -i "s|export const API_BASE_URL = '.*';|export const API_BASE_URL = 'http://localhost:3000/api/v1';|g" "$constants_file" \
+            || die "Failed to update API_BASE_URL in constants.ts"
+        log_ok "UI configured to use http://localhost:3000/api/v1"
+    else
+        log_warn "Constants file not found at ${constants_file}. Skipping API URL configuration."
+    fi
+}
+
 # === Build UI ===
 build_ui() {
     log_info "Installing UI npm dependencies (this may take a few minutes)..."
@@ -272,6 +287,7 @@ main() {
     build_app
     start_service
     download_and_replace_ui
+    configure_ui
     build_ui
     start_ui_service
     print_success

@@ -327,6 +327,21 @@ download_ui() {
     log_ok "UI extracted to ${UI_DIR}"
 }
 
+# === Configure UI ===
+configure_ui() {
+    log_info "Configuring UI API endpoint..."
+    local constants_file="${UI_DIR}/src/server/constants.ts"
+    
+    if [[ -f "$constants_file" ]]; then
+        # Replace the API_BASE_URL with localhost:3000
+        sed -i "s|export const API_BASE_URL = '.*';|export const API_BASE_URL = 'http://localhost:${APP_PORT}/api/v1';|g" "$constants_file" \
+            || die "Failed to update API_BASE_URL in constants.ts"
+        log_ok "UI configured to use http://localhost:${APP_PORT}/api/v1"
+    else
+        log_warn "Constants file not found at ${constants_file}. Skipping API URL configuration."
+    fi
+}
+
 # === Build UI ===
 build_ui() {
     log_info "Installing UI npm dependencies (this may take a few minutes)..."
@@ -419,6 +434,7 @@ main() {
     setup_systemd
     create_admin_user
     download_ui
+    configure_ui
     build_ui
     setup_ui_systemd
     print_success
