@@ -150,7 +150,7 @@ create_app_user() {
     if id "$APP_USER" &>/dev/null; then
         log_warn "User '${APP_USER}' already exists. Skipping."
     else
-        useradd --system --no-create-home --shell /usr/sbin/nologin "$APP_USER" \
+        useradd --system --create-home --shell /usr/sbin/nologin "$APP_USER" \
             || die "Failed to create system user '${APP_USER}'."
     fi
     log_ok "System user '${APP_USER}' ready"
@@ -353,6 +353,8 @@ ExecStart=/usr/bin/npx expo start --web --port ${UI_PORT}
 Restart=on-failure
 RestartSec=10
 Environment=NODE_ENV=production
+Environment=EXPO_NO_TELEMETRY=1
+Environment=EXPO_NO_DOTENV=1
 
 [Install]
 WantedBy=multi-user.target
