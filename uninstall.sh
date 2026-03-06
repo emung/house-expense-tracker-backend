@@ -15,6 +15,11 @@ DB_USER="house_app"
 SERVICE_FILE="/etc/systemd/system/${APP_NAME}.service"
 LOG_FILE="/var/log/${APP_NAME}-install.log"
 
+# UI Configuration
+UI_DIR="/opt/${APP_NAME}-ui"
+UI_SERVICE_NAME="${APP_NAME}-ui"
+UI_SERVICE_FILE="/etc/systemd/system/${UI_SERVICE_NAME}.service"
+
 # === Logging ===
 log_info()  { echo -e "\e[34m⏳ $1\e[0m"; }
 log_ok()    { echo -e "\e[32m✅ $1\e[0m"; }
@@ -44,7 +49,7 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     exit 0
 fi
 
-# === Stop Service ===
+# === Stop Backend Service ===
 if systemctl is-active --quiet "${APP_NAME}.service"; then
     log_info "Stopping ${APP_NAME} service..."
     systemctl stop "${APP_NAME}.service" || true
@@ -56,19 +61,46 @@ if systemctl is-enabled --quiet "${APP_NAME}.service"; then
 fi
 
 if [[ -f "$SERVICE_FILE" ]]; then
-    log_info "Removing systemd service file..."
+    log_info "Removing backend systemd service file..."
     rm -f "$SERVICE_FILE"
-    systemctl daemon-reload
-    log_ok "Service removed"
+    log_ok "Backend service removed"
 fi
 
-# === Remove Files ===
+# === Stop UI Service ===
+if systemctl is-active --quiet "${UI_SERVICE_NAME}.service"; then
+    log_info "Stopping ${UI_SERVICE_NAME} service..."
+    systemctl stop "${UI_SERVICE_NAME}.service" || true
+fi
+
+if systemctl is-enabled --quiet "${UI_SERVICE_NAME}.service"; then
+    log_info "Disabling ${UI_SERVICE_NAME} service..."
+    systemctl disable "${UI_SERVICE_NAME}.service" || true
+fi
+
+if [[ -f "$UI_SERVICE_FILE" ]]; then
+    log_info "Removing UI systemd service file..."
+    rm -f "$UI_SERVICE_FILE"
+    log_ok "UI service removed"
+fi
+
+systemctl daemon-reload
+
+# === Remove Backend Files ===
 if [[ -d "$APP_DIR" ]]; then
-    log_info "Removing application directory ${APP_DIR}..."
+    log_info "Removing backend directory ${APP_DIR}..."
     rm -rf "$APP_DIR"
-    log_ok "Files removed"
+    log_ok "Backend files removed"
 else
-    log_warn "Application directory not found. Skipping."
+    log_warn "Backend directory not found. Skipping."
+fi
+
+# === Remove UI Files ===
+if [[ -d "$UI_DIR" ]]; then
+    log_info "Removing UI directory ${UI_DIR}..."
+    rm -rf "$UI_DIR"
+    log_ok "UI files removed"
+else
+    log_warn "UI directory not found. Skipping."
 fi
 
 # === Remove Database ===

@@ -14,6 +14,12 @@ LOG_FILE="/var/log/${APP_NAME}-upgrade.log"
 GITHUB_ZIP="https://github.com/emung/house-expense-tracker-backend/archive/refs/heads/main.zip"
 BACKUP_DIR="/tmp/${APP_NAME}-upgrade-backup"
 
+# UI Configuration
+UI_DIR="/opt/${APP_NAME}-ui"
+UI_PORT=8080
+UI_SERVICE_NAME="${APP_NAME}-ui"
+UI_GITHUB_ZIP="https://github.com/emung/react-native-house-expense-tracker/archive/refs/heads/main.zip"
+
 # === Logging ===
 log_info()  { echo -e "\e[34m⏳ $1\e[0m"; echo "[INFO]  $(date '+%H:%M:%S') $1" >> "$LOG_FILE"; }
 log_ok()    { echo -e "\e[32m✅ $1\e[0m"; echo "[OK]    $(date '+%H:%M:%S') $1" >> "$LOG_FILE"; }
@@ -155,6 +161,61 @@ build_app() {
     log_ok "Database migrations complete"
 }
 
+# === Stop UI Service ===
+stop_ui_service() {
+    log_info "Stopping ${UI_SERVICE_NAME} service..."
+    if systemctl is-active --quiet "${UI_SERVICE_NAME}.service"; then
+        systemctl stop "${UI_SERVICE_NAME}.service" >> "$LOG_FILE" 2>&1 \
+            || die "Failed to stop the UI service."
+        log_ok "UI service stopped"
+    else
+        log_warn "UI service was not running."
+    fi
+}
+
+# === Download & Replace UI ===
+download_and_replace_ui() {
+    log_info "Downloading latest UI version from GitHub..."
+    local tmp_zip="/tmp/${APP_NAME}-ui.zip"
+
+    curl -fsSL "$UI_GITHUB_ZIP" -o "$tmp_zip" >> "$LOG_FILE" 2>&1 \
+        || die "Failed to download UI from GitHub."
+
+    log_info "Extracting new UI version..."
+    rm -rf /tmp/react-native-house-expense-tracker-main
+    unzip -qo "$tmp_zip" -d /tmp >> "$LOG_FILE" 2>&1 \
+        || die "Failed to extract UI archive."
+
+    log_info "Replacing UI files..."
+    rm -rf "$UI_DIR"
+    mv /tmp/react-native-house-expense-tracker-main "$UI_DIR" \
+        || die "Failed to move new UI to ${UI_DIR}."
+
+    rm -f "$tmp_zip"
+    log_ok "UI files updated"
+}
+
+# === Build UI ===
+build_ui() {
+    log_info "Installing UI npm dependencies (this may take a few minutes)..."
+    cd "$UI_DIR"
+    npm install --legacy-peer-deps >> "$LOG_FILE" 2>&1 \
+        || die "Failed to install UI npm dependencies."
+    log_ok "UI npm dependencies installed"
+}
+
+# === Start UI Service ===
+start_ui_service() {
+    log_info "Setting UI file permissions..."
+    chown -R "${APP_USER}:${APP_USER}" "$UI_DIR"
+    log_ok "UI permissions set"
+
+    log_info "Starting ${UI_SERVICE_NAME} service..."
+    systemctl start "${UI_SERVICE_NAME}.service" >> "$LOG_FILE" 2>&1 \
+        || die "Failed to start the UI service."
+    log_ok "UI service started"
+}
+
 # === Fix Ownership & Restart ===
 start_service() {
     log_info "Setting file permissions..."
@@ -185,11 +246,14 @@ print_success() {
     echo "╔══════════════════════════════════════════════════════════════╗"
     echo "║  ✅  Upgrade Complete!                                      ║"
     echo "║                                                            ║"
-    echo "║  The app is running at:  http://localhost:3000              ║"
+    echo "║  Backend running at:  http://localhost:3000                ║"
+    echo "║  Frontend running at: http://localhost:${UI_PORT}          ║"
     echo "║                                                            ║"
     echo "║  Useful commands:                                          ║"
     echo "║    sudo systemctl status  ${APP_NAME}                ║"
     echo "║    sudo systemctl restart ${APP_NAME}                ║"
+    echo "║    sudo systemctl status  ${UI_SERVICE_NAME}         ║"
+    echo "║    sudo systemctl restart ${UI_SERVICE_NAME}         ║"
     echo "║                                                            ║"
     echo "║  Upgrade log: ${LOG_FILE}   ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
@@ -202,10 +266,14 @@ main() {
     preflight_checks
     backup_config
     stop_service
+    stop_ui_service
     download_and_replace
     restore_config
     build_app
     start_service
+    download_and_replace_ui
+    build_ui
+    start_ui_service
     print_success
 }
 

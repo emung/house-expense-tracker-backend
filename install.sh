@@ -19,6 +19,12 @@ GITHUB_ZIP="https://github.com/emung/house-expense-tracker-backend/archive/refs/
 NODE_MAJOR=20
 ADMIN_PASSWORD="admin"
 
+# UI Configuration
+UI_DIR="/opt/${APP_NAME}-ui"
+UI_PORT=8080
+UI_SERVICE_NAME="${APP_NAME}-ui"
+UI_GITHUB_ZIP="https://github.com/emung/react-native-house-expense-tracker/archive/refs/heads/main.zip"
+
 # JWT key variables (populated during install)
 JWT_PRIVATE=""
 JWT_PUBLIC=""
@@ -302,6 +308,65 @@ create_admin_user() {
 }
 
 
+# === Download UI ===
+download_ui() {
+    log_info "Downloading UI from GitHub..."
+    local tmp_zip="/tmp/${APP_NAME}-ui.zip"
+
+    curl -fsSL "$UI_GITHUB_ZIP" -o "$tmp_zip" >> "$LOG_FILE" 2>&1 \
+        || die "Failed to download UI from GitHub."
+
+    log_info "Extracting UI to ${UI_DIR}..."
+    unzip -qo "$tmp_zip" -d /tmp >> "$LOG_FILE" 2>&1 \
+        || die "Failed to extract UI archive."
+
+    mv /tmp/react-native-house-expense-tracker-main "$UI_DIR" \
+        || die "Failed to move UI to ${UI_DIR}."
+
+    rm -f "$tmp_zip"
+    log_ok "UI extracted to ${UI_DIR}"
+}
+
+# === Build UI ===
+build_ui() {
+    log_info "Installing UI npm dependencies (this may take a few minutes)..."
+    cd "$UI_DIR"
+    npm install --legacy-peer-deps >> "$LOG_FILE" 2>&1 \
+        || die "Failed to install UI npm dependencies."
+    log_ok "UI npm dependencies installed"
+}
+
+# === UI Systemd Service ===
+setup_ui_systemd() {
+    log_info "Creating UI systemd service..."
+
+    cat > "/etc/systemd/system/${UI_SERVICE_NAME}.service" <<EOF
+[Unit]
+Description=House Expense Tracker UI
+After=network.target ${APP_NAME}.service
+
+[Service]
+Type=simple
+User=${APP_USER}
+WorkingDirectory=${UI_DIR}
+ExecStart=/usr/bin/npx expo start --web --port ${UI_PORT}
+Restart=on-failure
+RestartSec=10
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+    # Set ownership so the service user can access the UI
+    chown -R "${APP_USER}:${APP_USER}" "$UI_DIR"
+
+    systemctl daemon-reload
+    systemctl enable "${UI_SERVICE_NAME}.service" >> "$LOG_FILE" 2>&1
+    systemctl start "${UI_SERVICE_NAME}.service" >> "$LOG_FILE" 2>&1
+    log_ok "UI systemd service created and started"
+}
+
 # === Banners ===
 print_banner() {
     echo ""
@@ -319,12 +384,16 @@ print_success() {
     echo "╔══════════════════════════════════════════════════════════════╗"
     echo "║  ✅  Installation Complete!                                  ║"
     echo "║                                                              ║"
-    echo "║  The app is running at:  http://localhost:${APP_PORT}        ║"
+    echo "║  Backend running at:  http://localhost:${APP_PORT}           ║"
+    echo "║  Frontend running at: http://localhost:${UI_PORT}            ║"
     echo "║                                                              ║"
     echo "║  Useful commands:                                            ║"
     echo "║    sudo systemctl status  ${APP_NAME}                        ║"
     echo "║    sudo systemctl restart ${APP_NAME}                        ║"
     echo "║    sudo systemctl stop    ${APP_NAME}                        ║"
+    echo "║    sudo systemctl status  ${UI_SERVICE_NAME}                 ║"
+    echo "║    sudo systemctl restart ${UI_SERVICE_NAME}                 ║"
+    echo "║    sudo systemctl stop    ${UI_SERVICE_NAME}                 ║"
     echo "║                                                              ║"
     echo "║  Install log: ${LOG_FILE}                                    ║"
     echo "║  The default credentials are admin:admin (username:password) ║"
@@ -347,6 +416,9 @@ main() {
     build_app
     setup_systemd
     create_admin_user
+    download_ui
+    build_ui
+    setup_ui_systemd
     print_success
 }
 
