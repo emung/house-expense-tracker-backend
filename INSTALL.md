@@ -1,6 +1,6 @@
 # House Expense Tracker — Installation Guide
 
-Automatic installer for the **House Expense Tracker Backend** on a fresh Linux Mint system.  
+Automatic installer for the **House Expense Tracker** (Backend + Frontend) on a fresh Linux Mint system.  
 The installer handles everything — no technical knowledge required.
 
 ---
@@ -17,18 +17,22 @@ The installer handles everything — no technical knowledge required.
 sudo bash install.sh
 ```
 
-Wait **5–10 minutes**. When finished, the app is live at **http://localhost:3000**.
+Wait **5–10 minutes**. When finished:
+
+- **Backend API** is live at **http://localhost:3000**
+- **Frontend UI** is live at **http://localhost:8080**
 
 ---
 
 ## What Gets Installed
 
-| Component | Details |
-|-----------|---------|
-| **Node.js 20** | Via NodeSource APT repository |
-| **PostgreSQL** | Database server with a dedicated `house_app` user |
-| **NestJS App** | Downloaded from GitHub, built and deployed to `/opt/house-expense-tracker` |
-| **systemd service** | Auto-starts the app on boot |
+| Component            | Details                                                                    |
+| -------------------- | -------------------------------------------------------------------------- |
+| **Node.js 20**       | Via NodeSource APT repository                                              |
+| **PostgreSQL**       | Database server with a dedicated `house_app` user                          |
+| **NestJS Backend**   | Downloaded from GitHub, built and deployed to `/opt/house-expense-tracker` |
+| **React Native UI**  | Downloaded from GitHub, installed to `/opt/house-expense-tracker-ui`       |
+| **systemd services** | Two services auto-start backend and frontend on boot                       |
 
 ## Installation Steps
 
@@ -44,38 +48,44 @@ The script performs these steps sequentially, aborting on any failure:
 8. **Download app** — Fetches and extracts the latest version from GitHub
 9. **JWT keys** — Generates RSA 2048-bit key pair for authentication
 10. **Environment config** — Writes `.env` with all generated values
-11. **Build** — Runs `npm install`, `npm run build`, and database migrations
-12. **systemd service** — Creates, enables, and starts the service
+11. **Build backend** — Runs `npm install`, `npm run build`, and database migrations
+12. **Backend systemd service** — Creates, enables, and starts the backend service
+13. **Admin user** — Creates default admin user via the API
+14. **Download UI** — Fetches and extracts the React Native frontend from GitHub
+15. **Build UI** — Runs `npm install` for the frontend
+16. **UI systemd service** — Creates, enables, and starts the frontend service (Expo web on port 8080)
 
 ## Default Configuration
 
-| Setting | Value |
-|---------|-------|
-| Install path | `/opt/house-expense-tracker` |
-| App port | `3000` |
-| Database name | `house_expenses` |
-| Database user | `house_app` |
-| Database password | Auto-generated (32-char random string) |
-| JWT keys | Auto-generated RSA 2048-bit |
-| Admin password | `admin` |
-| Service user | `housetracker` |
+| Setting               | Value                                  |
+| --------------------- | -------------------------------------- |
+| Backend install path  | `/opt/house-expense-tracker`           |
+| Frontend install path | `/opt/house-expense-tracker-ui`        |
+| Backend port          | `3000`                                 |
+| Frontend port         | `8080`                                 |
+| Database name         | `house_expenses`                       |
+| Database user         | `house_app`                            |
+| Database password     | Auto-generated (32-char random string) |
+| JWT keys              | Auto-generated RSA 2048-bit            |
+| Admin password        | `admin`                                |
+| Service user          | `housetracker`                         |
 
 ## Managing the Service
 
-After installation, use these commands to control the app:
+After installation, use these commands to control the services:
 
 ```bash
-# Check status
-sudo systemctl status house-expense-tracker
-
-# Restart the app
+# Backend
+sudo systemctl status  house-expense-tracker
 sudo systemctl restart house-expense-tracker
-
-# Stop the app
-sudo systemctl stop house-expense-tracker
-
-# View app logs
+sudo systemctl stop    house-expense-tracker
 sudo journalctl -u house-expense-tracker -f
+
+# Frontend
+sudo systemctl status  house-expense-tracker-ui
+sudo systemctl restart house-expense-tracker-ui
+sudo systemctl stop    house-expense-tracker-ui
+sudo journalctl -u house-expense-tracker-ui -f
 ```
 
 ## Upgrading
@@ -87,10 +97,12 @@ sudo bash upgrade.sh
 ```
 
 This takes **3–5 minutes** and will:
-- Download the latest version from GitHub
+
+- Download the latest backend and frontend versions from GitHub
 - **Preserve** your database, `.env` configuration, and JWT keys
-- Rebuild the app and run any new database migrations
-- Restart the service automatically
+- Rebuild the backend and run any new database migrations
+- Reinstall frontend dependencies
+- Restart both services automatically
 
 > **Note:** The upgrade log is saved to `/var/log/house-expense-tracker-upgrade.log`
 
@@ -98,7 +110,8 @@ This takes **3–5 minutes** and will:
 
 - **Install log:** `/var/log/house-expense-tracker-install.log`
 - **Upgrade log:** `/var/log/house-expense-tracker-upgrade.log`
-- **Runtime logs:** `sudo journalctl -u house-expense-tracker`
+- **Backend runtime logs:** `sudo journalctl -u house-expense-tracker`
+- **Frontend runtime logs:** `sudo journalctl -u house-expense-tracker-ui`
 
 ## Troubleshooting
 
@@ -115,10 +128,10 @@ cat /var/log/house-expense-tracker-install.log
 The script won't run if `/opt/house-expense-tracker` already exists. To reinstall:
 
 ```bash
-sudo systemctl stop house-expense-tracker
-sudo systemctl disable house-expense-tracker
-sudo rm -rf /opt/house-expense-tracker
-sudo rm /etc/systemd/system/house-expense-tracker.service
+sudo systemctl stop house-expense-tracker house-expense-tracker-ui
+sudo systemctl disable house-expense-tracker house-expense-tracker-ui
+sudo rm -rf /opt/house-expense-tracker /opt/house-expense-tracker-ui
+sudo rm /etc/systemd/system/house-expense-tracker.service /etc/systemd/system/house-expense-tracker-ui.service
 sudo systemctl daemon-reload
 sudo bash install.sh
 ```
@@ -147,17 +160,23 @@ sudo systemctl status postgresql
 
 ## Uninstall
 
-To completely remove the application:
+The easiest way to uninstall is to run the uninstall script:
 
 ```bash
-# Stop and remove the service
-sudo systemctl stop house-expense-tracker
-sudo systemctl disable house-expense-tracker
-sudo rm /etc/systemd/system/house-expense-tracker.service
+sudo bash uninstall.sh
+```
+
+Alternatively, to manually remove everything:
+
+```bash
+# Stop and remove both services
+sudo systemctl stop house-expense-tracker house-expense-tracker-ui
+sudo systemctl disable house-expense-tracker house-expense-tracker-ui
+sudo rm /etc/systemd/system/house-expense-tracker.service /etc/systemd/system/house-expense-tracker-ui.service
 sudo systemctl daemon-reload
 
-# Remove the application
-sudo rm -rf /opt/house-expense-tracker
+# Remove the applications
+sudo rm -rf /opt/house-expense-tracker /opt/house-expense-tracker-ui
 
 # Remove the database (optional)
 sudo -u postgres psql -c "DROP DATABASE IF EXISTS house_expenses;"
