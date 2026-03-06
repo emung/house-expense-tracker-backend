@@ -262,14 +262,54 @@ EOF
     log_ok "Systemd service created and started"
 }
 
+# === Admin User ===
+create_admin_user() {
+    log_info "Waiting for application to start to create admin user..."
+    
+    local max_attempts=30
+    local attempt=1
+    local started=false
+
+    while [ $attempt -le $max_attempts ]; do
+        if curl -s "http://localhost:${APP_PORT}" >/dev/null 2>&1; then
+            started=true
+            break
+        fi
+        sleep 1
+        ((attempt++))
+    done
+
+    if [ "$started" = true ]; then
+        log_info "Application is up. Creating admin user..."
+        local response_code
+        response_code=$(curl -s -o /dev/null -w "%{http_code}" -X POST "http://localhost:${APP_PORT}/api/v1/auth/register" \
+            -H "Content-Type: application/json" \
+            -d '{
+  "name": "admin",
+  "username": "admin",
+  "password": "admin",
+  "email": "test@admin.com"
+}')
+            
+        if [[ "$response_code" == "200" || "$response_code" == "201" ]]; then
+            log_ok "Admin user created successfully."
+        else
+            log_warn "Failed to create admin user. HTTP code: $response_code"
+        fi
+    else
+        log_warn "Application did not start in time. Skipping admin user creation."
+    fi
+}
+
+
 # === Banners ===
 print_banner() {
     echo ""
     echo "╔══════════════════════════════════════════════════════════════╗"
-    echo "║          House Expense Tracker — Installer                  ║"
-    echo "║                                                            ║"
-    echo "║  This will install and configure everything automatically. ║"
-    echo "║  Estimated time: 5–10 minutes.                             ║"
+    echo "║          House Expense Tracker — Installer                   ║"
+    echo "║                                                              ║"
+    echo "║  This will install and configure everything automatically.   ║"
+    echo "║  Estimated time: 5–10 minutes.                               ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
     echo ""
 }
@@ -277,16 +317,16 @@ print_banner() {
 print_success() {
     echo ""
     echo "╔══════════════════════════════════════════════════════════════╗"
-    echo "║  ✅  Installation Complete!                                 ║"
-    echo "║                                                            ║"
-    echo "║  The app is running at:  http://localhost:${APP_PORT}            ║"
-    echo "║                                                            ║"
-    echo "║  Useful commands:                                          ║"
-    echo "║    sudo systemctl status  ${APP_NAME}                ║"
-    echo "║    sudo systemctl restart ${APP_NAME}                ║"
-    echo "║    sudo systemctl stop    ${APP_NAME}                ║"
-    echo "║                                                            ║"
-    echo "║  Install log: ${LOG_FILE}   ║"
+    echo "║  ✅  Installation Complete!                                  ║"
+    echo "║                                                              ║"
+    echo "║  The app is running at:  http://localhost:${APP_PORT}        ║"
+    echo "║                                                              ║"
+    echo "║  Useful commands:                                            ║"
+    echo "║    sudo systemctl status  ${APP_NAME}                        ║"
+    echo "║    sudo systemctl restart ${APP_NAME}                        ║"
+    echo "║    sudo systemctl stop    ${APP_NAME}                        ║"
+    echo "║                                                              ║"
+    echo "║  Install log: ${LOG_FILE}                                    ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
     echo ""
 }
@@ -305,6 +345,7 @@ main() {
     write_env_file
     build_app
     setup_systemd
+    create_admin_user
     print_success
 }
 
