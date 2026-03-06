@@ -327,6 +327,7 @@ print_success() {
     echo "║    sudo systemctl stop    ${APP_NAME}                        ║"
     echo "║                                                              ║"
     echo "║  Install log: ${LOG_FILE}                                    ║"
+    echo "║  The default credentials are admin:admin (username:password) ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
     echo ""
 }
