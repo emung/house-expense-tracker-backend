@@ -224,12 +224,30 @@ configure_ui() {
     else
         log_warn "package.json not found at ${package_json}. Skipping React version fix."
     fi
+    
+    log_info "Disabling React Compiler (incompatible with React 18)..."
+    local app_json="${UI_DIR}/app.json"
+    
+    if [[ -f "$app_json" ]]; then
+        # Disable React Compiler which requires React 19
+        sed -i 's/"reactCompiler": true/"reactCompiler": false/g' "$app_json" \
+            || die "Failed to disable React Compiler in app.json"
+        log_ok "React Compiler disabled"
+    else
+        log_warn "app.json not found at ${app_json}. Skipping React Compiler fix."
+    fi
 }
 
 # === Build UI ===
 build_ui() {
-    log_info "Installing UI npm dependencies (this may take a few minutes)..."
+    log_info "Clearing npm and Metro cache..."
     cd "$UI_DIR"
+    rm -rf .expo node_modules/.cache 2>/dev/null || true
+    npm cache clean --force >> "$LOG_FILE" 2>&1 || true
+    log_ok "Cache cleared"
+    
+    log_info "Installing UI npm dependencies (this may take a few minutes)..."
+    rm -rf node_modules package-lock.json
     npm install --legacy-peer-deps >> "$LOG_FILE" 2>&1 \
         || die "Failed to install UI npm dependencies."
     log_ok "UI npm dependencies installed"
@@ -263,11 +281,11 @@ start_service() {
 print_banner() {
     echo ""
     echo "╔══════════════════════════════════════════════════════════════╗"
-    echo "║          House Expense Tracker — Upgrader                   ║"
-    echo "║                                                            ║"
-    echo "║  This will upgrade the app to the latest version.          ║"
-    echo "║  Your data and configuration will be preserved.            ║"
-    echo "║  Estimated time: 3–5 minutes.                              ║"
+    echo "║          House Expense Tracker — Upgrader                    ║"
+    echo "║                                                              ║"
+    echo "║  This will upgrade the app to the latest version.            ║"
+    echo "║  Your data and configuration will be preserved.              ║"
+    echo "║  Estimated time: 3–5 minutes.                                ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
     echo ""
 }
@@ -275,18 +293,18 @@ print_banner() {
 print_success() {
     echo ""
     echo "╔══════════════════════════════════════════════════════════════╗"
-    echo "║  ✅  Upgrade Complete!                                      ║"
-    echo "║                                                            ║"
-    echo "║  Backend running at:  http://localhost:3000                ║"
-    echo "║  Frontend running at: http://localhost:${UI_PORT}          ║"
-    echo "║                                                            ║"
-    echo "║  Useful commands:                                          ║"
-    echo "║    sudo systemctl status  ${APP_NAME}                ║"
-    echo "║    sudo systemctl restart ${APP_NAME}                ║"
-    echo "║    sudo systemctl status  ${UI_SERVICE_NAME}         ║"
-    echo "║    sudo systemctl restart ${UI_SERVICE_NAME}         ║"
-    echo "║                                                            ║"
-    echo "║  Upgrade log: ${LOG_FILE}   ║"
+    echo "║  ✅  Upgrade Complete!                                       ║"
+    echo "║                                                              ║"
+    echo "║  Backend running at:  http://localhost:3000                  ║"
+    echo "║  Frontend running at: http://localhost:${UI_PORT}            ║"
+    echo "║                                                              ║"
+    echo "║  Useful commands:                                            ║"
+    echo "║    sudo systemctl status  ${APP_NAME}                        ║"
+    echo "║    sudo systemctl restart ${APP_NAME}                        ║"
+    echo "║    sudo systemctl status  ${UI_SERVICE_NAME}                 ║"
+    echo "║    sudo systemctl restart ${UI_SERVICE_NAME}                 ║"
+    echo "║                                                              ║"
+    echo "║  Upgrade log: ${LOG_FILE}                                    ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
     echo ""
 }

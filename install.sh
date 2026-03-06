@@ -356,12 +356,30 @@ configure_ui() {
     else
         log_warn "package.json not found at ${package_json}. Skipping React version fix."
     fi
+    
+    log_info "Disabling React Compiler (incompatible with React 18)..."
+    local app_json="${UI_DIR}/app.json"
+    
+    if [[ -f "$app_json" ]]; then
+        # Disable React Compiler which requires React 19
+        sed -i 's/"reactCompiler": true/"reactCompiler": false/g' "$app_json" \
+            || die "Failed to disable React Compiler in app.json"
+        log_ok "React Compiler disabled"
+    else
+        log_warn "app.json not found at ${app_json}. Skipping React Compiler fix."
+    fi
 }
 
 # === Build UI ===
 build_ui() {
-    log_info "Installing UI npm dependencies (this may take a few minutes)..."
+    log_info "Clearing npm and Metro cache..."
     cd "$UI_DIR"
+    rm -rf .expo node_modules/.cache 2>/dev/null || true
+    npm cache clean --force >> "$LOG_FILE" 2>&1 || true
+    log_ok "Cache cleared"
+    
+    log_info "Installing UI npm dependencies (this may take a few minutes)..."
+    rm -rf node_modules package-lock.json
     npm install --legacy-peer-deps >> "$LOG_FILE" 2>&1 \
         || die "Failed to install UI npm dependencies."
     log_ok "UI npm dependencies installed"
