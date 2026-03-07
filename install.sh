@@ -344,17 +344,22 @@ configure_ui() {
 
 # === Build UI ===
 build_ui() {
-    log_info "Clearing npm and Metro cache..."
     cd "$UI_DIR"
-    rm -rf .expo node_modules/.cache 2>/dev/null || true
-    npm cache clean --force >> "$LOG_FILE" 2>&1 || true
-    log_ok "Cache cleared"
     
     log_info "Installing UI npm dependencies (this may take a few minutes)..."
-    rm -rf node_modules package-lock.json
     npm install --legacy-peer-deps >> "$LOG_FILE" 2>&1 \
         || die "Failed to install UI npm dependencies."
     log_ok "UI npm dependencies installed"
+
+    log_info "Building static web export (this may take a few minutes)..."
+    npx expo export --platform web >> "$LOG_FILE" 2>&1 \
+        || die "Failed to build static web export."
+    log_ok "Static web export built to ${UI_DIR}/dist"
+
+    log_info "Installing static file server..."
+    npm install --save serve >> "$LOG_FILE" 2>&1 \
+        || die "Failed to install serve."
+    log_ok "Static file server installed"
 }
 
 # === UI Systemd Service ===
@@ -370,12 +375,10 @@ After=network.target ${APP_NAME}.service
 Type=simple
 User=${APP_USER}
 WorkingDirectory=${UI_DIR}
-ExecStart=/usr/bin/npx expo start --web --port ${UI_PORT}
+ExecStart=${UI_DIR}/node_modules/.bin/serve dist -l ${UI_PORT} -s
 Restart=on-failure
 RestartSec=10
 Environment=NODE_ENV=production
-Environment=EXPO_NO_TELEMETRY=1
-Environment=EXPO_NO_DOTENV=1
 
 [Install]
 WantedBy=multi-user.target

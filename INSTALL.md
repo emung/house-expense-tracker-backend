@@ -52,8 +52,8 @@ The script performs these steps sequentially, aborting on any failure:
 12. **Backend systemd service** — Creates, enables, and starts the backend service
 13. **Admin user** — Creates default admin user via the API
 14. **Download UI** — Fetches and extracts the React Native frontend from GitHub
-15. **Build UI** — Runs `npm install` for the frontend
-16. **UI systemd service** — Creates, enables, and starts the frontend service (Expo web on port 8080)
+15. **Build UI** — Runs `npm install`, builds a static web export with `expo export`
+16. **UI systemd service** — Creates, enables, and starts the frontend service (static files served on port 8080)
 
 ## Default Configuration
 
@@ -101,7 +101,7 @@ This takes **3–5 minutes** and will:
 - Download the latest backend and frontend versions from GitHub
 - **Preserve** your database, `.env` configuration, and JWT keys
 - Rebuild the backend and run any new database migrations
-- Reinstall frontend dependencies
+- Reinstall frontend dependencies and rebuild the static web export
 - Restart both services automatically
 
 > **Note:** The upgrade log is saved to `/var/log/house-expense-tracker-upgrade.log`
