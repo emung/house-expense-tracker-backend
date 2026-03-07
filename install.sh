@@ -340,34 +340,6 @@ configure_ui() {
     else
         log_warn "Constants file not found at ${constants_file}. Skipping API URL configuration."
     fi
-    
-    log_info "Fixing React version compatibility..."
-    local package_json="${UI_DIR}/package.json"
-    
-    if [[ -f "$package_json" ]]; then
-        # Downgrade React 19 to React 18 for Expo SDK 54 compatibility
-        sed -i 's/"react": "19\.1\.0"/"react": "18.2.0"/g' "$package_json" \
-            || die "Failed to update React version in package.json"
-        sed -i 's/"react-dom": "19\.1\.0"/"react-dom": "18.2.0"/g' "$package_json" \
-            || die "Failed to update React DOM version in package.json"
-        sed -i 's/"@types\/react": "~19\.1\.0"/"@types\/react": "~18.2.0"/g' "$package_json" \
-            || die "Failed to update @types/react version in package.json"
-        log_ok "React downgraded to 18.2.0 for compatibility"
-    else
-        log_warn "package.json not found at ${package_json}. Skipping React version fix."
-    fi
-    
-    log_info "Disabling React Compiler (incompatible with React 18)..."
-    local app_json="${UI_DIR}/app.json"
-    
-    if [[ -f "$app_json" ]]; then
-        # Disable React Compiler which requires React 19
-        sed -i 's/"reactCompiler": true/"reactCompiler": false/g' "$app_json" \
-            || die "Failed to disable React Compiler in app.json"
-        log_ok "React Compiler disabled"
-    else
-        log_warn "app.json not found at ${app_json}. Skipping React Compiler fix."
-    fi
 }
 
 # === Build UI ===
