@@ -108,7 +108,15 @@ When a new version is available, run the upgrade script:
 sudo bash upgrade.sh
 ```
 
-This takes **3–5 minutes** and will:
+The upgrade script automatically checks if there are any changes in the GitHub repositories. If nothing has changed, it will skip the upgrade and print "Already up to date!".
+
+To force an upgrade regardless:
+
+```bash
+sudo bash upgrade.sh --force
+```
+
+When an upgrade runs, it takes **3–5 minutes** and will:
 
 - Download the latest backend and frontend versions from GitHub
 - **Preserve** your database, `.env` configuration, and JWT keys
