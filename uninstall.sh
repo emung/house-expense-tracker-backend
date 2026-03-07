@@ -20,6 +20,10 @@ UI_DIR="/opt/${APP_NAME}-ui"
 UI_SERVICE_NAME="${APP_NAME}-ui"
 UI_SERVICE_FILE="/etc/systemd/system/${UI_SERVICE_NAME}.service"
 
+# Nginx / hostname
+NGINX_SITE_AVAILABLE="/etc/nginx/sites-available/${APP_NAME}"
+NGINX_SITE_ENABLED="/etc/nginx/sites-enabled/${APP_NAME}"
+
 # === Logging ===
 log_info()  { echo -e "\e[34m⏳ $1\e[0m"; }
 log_ok()    { echo -e "\e[32m✅ $1\e[0m"; }
@@ -84,6 +88,21 @@ if [[ -f "$UI_SERVICE_FILE" ]]; then
 fi
 
 systemctl daemon-reload
+
+# === Remove Nginx Config ===
+if [[ -f "$NGINX_SITE_ENABLED" ]]; then
+    log_info "Removing nginx site config..."
+    rm -f "$NGINX_SITE_ENABLED"
+    rm -f "$NGINX_SITE_AVAILABLE"
+    # Restore default site if nginx is installed
+    if command -v nginx &> /dev/null; then
+        ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default 2>/dev/null || true
+        nginx -t > /dev/null 2>&1 && systemctl reload nginx 2>/dev/null || true
+    fi
+    log_ok "Nginx config removed"
+else
+    log_warn "No nginx site config found. Skipping."
+fi
 
 # === Remove Backend Files ===
 if [[ -d "$APP_DIR" ]]; then

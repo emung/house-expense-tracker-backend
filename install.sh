@@ -25,6 +25,9 @@ UI_PORT=8080
 UI_SERVICE_NAME="${APP_NAME}-ui"
 UI_GITHUB_ZIP="https://github.com/emung/react-native-house-expense-tracker/archive/refs/heads/main.zip"
 
+# Local network hostname (accessible as http://haus.local)
+HOSTNAME_LOCAL="haus"
+
 # JWT key variables (populated during install)
 JWT_PRIVATE=""
 JWT_PUBLIC=""
@@ -78,8 +81,8 @@ install_system_deps() {
         || die "Failed to upgrade system packages."
     log_ok "System packages updated"
 
-    log_info "Installing base dependencies (curl, unzip, openssl, build-essential)..."
-    apt-get install -y curl unzip openssl build-essential ca-certificates gnupg >> "$LOG_FILE" 2>&1 \
+    log_info "Installing base dependencies (curl, unzip, openssl, build-essential, avahi, nginx)..."
+    apt-get install -y curl unzip openssl build-essential ca-certificates gnupg avahi-daemon nginx >> "$LOG_FILE" 2>&1 \
         || die "Failed to install base dependencies."
     log_ok "Base dependencies installed"
 }
@@ -334,9 +337,9 @@ configure_ui() {
     
     if [[ -f "$constants_file" ]]; then
         # Replace the API_BASE_URL with localhost:3000
-        sed -i "s|export const API_BASE_URL = '.*';|export const API_BASE_URL = 'http://localhost:${APP_PORT}/api/v1';|g" "$constants_file" \
+        sed -i "s|export const API_BASE_URL = '.*';|export const API_BASE_URL = '/api/v1';|g" "$constants_file" \
             || die "Failed to update API_BASE_URL in constants.ts"
-        log_ok "UI configured to use http://localhost:${APP_PORT}/api/v1"
+        log_ok "UI configured to use relative API path /api/v1 (proxied by nginx)"
     else
         log_warn "Constants file not found at ${constants_file}. Skipping API URL configuration."
     fi
@@ -393,6 +396,64 @@ EOF
     log_ok "UI systemd service created and started"
 }
 
+# === Local Network Hostname (avahi + nginx) ===
+setup_local_hostname() {
+    log_info "Setting hostname to '${HOSTNAME_LOCAL}'..."
+    hostnamectl set-hostname "${HOSTNAME_LOCAL}" \
+        || die "Failed to set hostname."
+    # Update /etc/hosts so the hostname resolves locally too
+    if ! grep -q "127.0.1.1.*${HOSTNAME_LOCAL}" /etc/hosts; then
+        sed -i "/^127\.0\.1\.1/c\127.0.1.1\t${HOSTNAME_LOCAL}" /etc/hosts 2>/dev/null \
+            || echo "127.0.1.1	${HOSTNAME_LOCAL}" >> /etc/hosts
+    fi
+    log_ok "Hostname set to '${HOSTNAME_LOCAL}' (${HOSTNAME_LOCAL}.local)"
+
+    log_info "Enabling avahi-daemon for mDNS..."
+    systemctl enable avahi-daemon >> "$LOG_FILE" 2>&1 || true
+    systemctl restart avahi-daemon >> "$LOG_FILE" 2>&1 \
+        || die "Failed to start avahi-daemon."
+    log_ok "avahi-daemon running — broadcasting ${HOSTNAME_LOCAL}.local"
+
+    log_info "Configuring nginx reverse proxy..."
+    cat > /etc/nginx/sites-available/${APP_NAME} <<EOF
+server {
+    listen 80;
+    server_name ${HOSTNAME_LOCAL}.local;
+
+    # Frontend UI
+    location / {
+        proxy_pass http://127.0.0.1:${UI_PORT};
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+
+    # Backend API
+    location /api/ {
+        proxy_pass http://127.0.0.1:${APP_PORT}/api/;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+}
+EOF
+
+    # Enable site and remove default
+    ln -sf /etc/nginx/sites-available/${APP_NAME} /etc/nginx/sites-enabled/${APP_NAME}
+    rm -f /etc/nginx/sites-enabled/default
+
+    nginx -t >> "$LOG_FILE" 2>&1 \
+        || die "Nginx configuration test failed."
+    systemctl enable nginx >> "$LOG_FILE" 2>&1 || true
+    systemctl restart nginx >> "$LOG_FILE" 2>&1 \
+        || die "Failed to start nginx."
+    log_ok "nginx reverse proxy configured — http://${HOSTNAME_LOCAL}.local"
+}
+
 # === Banners ===
 print_banner() {
     echo ""
@@ -410,8 +471,8 @@ print_success() {
     echo "╔══════════════════════════════════════════════════════════════╗"
     echo "║  ✅  Installation Complete!                                  ║"
     echo "║                                                              ║"
-    echo "║  Backend running at:  http://localhost:${APP_PORT}           ║"
-    echo "║  Frontend running at: http://localhost:${UI_PORT}            ║"
+    echo "║  Frontend:  http://${HOSTNAME_LOCAL}.local                   ║"
+    echo "║  Backend:   http://${HOSTNAME_LOCAL}.local/api/v1            ║"
     echo "║                                                              ║"
     echo "║  Useful commands:                                            ║"
     echo "║    sudo systemctl status  ${APP_NAME}                        ║"
@@ -446,6 +507,7 @@ main() {
     configure_ui
     build_ui
     setup_ui_systemd
+    setup_local_hostname
     print_success
 }
 
