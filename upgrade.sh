@@ -202,9 +202,9 @@ configure_ui() {
     
     if [[ -f "$constants_file" ]]; then
         # Replace the API_BASE_URL with localhost:3000
-        sed -i "s|export const API_BASE_URL = '.*';|export const API_BASE_URL = 'http://localhost:3000/api/v1';|g" "$constants_file" \
+        sed -i "s|export const API_BASE_URL = '.*';|export const API_BASE_URL = '/api/v1';|g" "$constants_file" \
             || die "Failed to update API_BASE_URL in constants.ts"
-        log_ok "UI configured to use http://localhost:3000/api/v1"
+        log_ok "UI configured to use relative API path /api/v1 (proxied by nginx)"
     else
         log_warn "Constants file not found at ${constants_file}. Skipping API URL configuration."
     fi
