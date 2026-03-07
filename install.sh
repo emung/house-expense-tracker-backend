@@ -28,6 +28,10 @@ UI_GITHUB_ZIP="https://github.com/emung/react-native-house-expense-tracker/archi
 # Local network hostname (accessible as http://haus.local)
 HOSTNAME_LOCAL="haus"
 
+# GitHub API (for SHA tracking)
+BACKEND_API_URL="https://api.github.com/repos/emung/house-expense-tracker-backend/commits/main"
+UI_API_URL="https://api.github.com/repos/emung/react-native-house-expense-tracker/commits/main"
+
 # JWT key variables (populated during install)
 JWT_PRIVATE=""
 JWT_PUBLIC=""
@@ -396,6 +400,19 @@ EOF
     log_ok "UI systemd service created and started"
 }
 
+# === Save Deployed SHAs ===
+save_deployed_shas() {
+    log_info "Saving deployed version info..."
+    local sha
+    sha=$(curl -s "$BACKEND_API_URL" | grep '"sha"' | head -1 | sed 's/.*"sha": "\([a-f0-9]*\)".*/\1/' 2>/dev/null) || true
+    [[ -n "$sha" ]] && echo "$sha" > "${APP_DIR}/.deployed-sha"
+
+    sha=$(curl -s "$UI_API_URL" | grep '"sha"' | head -1 | sed 's/.*"sha": "\([a-f0-9]*\)".*/\1/' 2>/dev/null) || true
+    [[ -n "$sha" ]] && echo "$sha" > "${UI_DIR}/.deployed-sha"
+
+    log_ok "Version info saved"
+}
+
 # === Local Network Hostname (avahi + nginx) ===
 setup_local_hostname() {
     log_info "Setting hostname to '${HOSTNAME_LOCAL}'..."
@@ -508,6 +525,7 @@ main() {
     build_ui
     setup_ui_systemd
     setup_local_hostname
+    save_deployed_shas
     print_success
 }
 

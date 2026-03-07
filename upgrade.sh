@@ -20,6 +20,18 @@ UI_PORT=8080
 UI_SERVICE_NAME="${APP_NAME}-ui"
 UI_GITHUB_ZIP="https://github.com/emung/react-native-house-expense-tracker/archive/refs/heads/main.zip"
 
+# GitHub API (for SHA comparison)
+BACKEND_API_URL="https://api.github.com/repos/emung/house-expense-tracker-backend/commits/main"
+UI_API_URL="https://api.github.com/repos/emung/react-native-house-expense-tracker/commits/main"
+BACKEND_SHA_FILE="${APP_DIR}/.deployed-sha"
+UI_SHA_FILE="${UI_DIR}/.deployed-sha"
+
+# Force flag
+FORCE_UPGRADE=false
+if [[ "${1:-}" == "--force" || "${1:-}" == "-f" ]]; then
+    FORCE_UPGRADE=true
+fi
+
 # === Logging ===
 log_info()  { echo -e "\e[34m⏳ $1\e[0m"; echo "[INFO]  $(date '+%H:%M:%S') $1" >> "$LOG_FILE"; }
 log_ok()    { echo -e "\e[32m✅ $1\e[0m"; echo "[OK]    $(date '+%H:%M:%S') $1" >> "$LOG_FILE"; }
@@ -63,6 +75,58 @@ preflight_checks() {
     mkdir -p "$(dirname "$LOG_FILE")"
     echo "=== Upgrade started at $(date) ===" > "$LOG_FILE"
     log_ok "Pre-flight checks passed"
+}
+
+# === Check for Updates ===
+check_for_updates() {
+    if [[ "$FORCE_UPGRADE" == true ]]; then
+        log_warn "Force flag set — skipping version check."
+        return 0
+    fi
+
+    log_info "Checking for updates..."
+
+    local backend_sha_remote ui_sha_remote
+    backend_sha_remote=$(curl -s "$BACKEND_API_URL" | grep '"sha"' | head -1 | sed 's/.*"sha": "\([a-f0-9]*\)".*/\1/' 2>/dev/null) || true
+    ui_sha_remote=$(curl -s "$UI_API_URL" | grep '"sha"' | head -1 | sed 's/.*"sha": "\([a-f0-9]*\)".*/\1/' 2>/dev/null) || true
+
+    if [[ -z "$backend_sha_remote" || -z "$ui_sha_remote" ]]; then
+        log_warn "Could not fetch remote versions. Proceeding with upgrade."
+        return 0
+    fi
+
+    local backend_sha_local=""
+    local ui_sha_local=""
+    [[ -f "$BACKEND_SHA_FILE" ]] && backend_sha_local=$(cat "$BACKEND_SHA_FILE")
+    [[ -f "$UI_SHA_FILE" ]] && ui_sha_local=$(cat "$UI_SHA_FILE")
+
+    if [[ "$backend_sha_remote" == "$backend_sha_local" && "$ui_sha_remote" == "$ui_sha_local" ]]; then
+        echo ""
+        echo "╔══════════════════════════════════════════════════════════════╗"
+        echo "║  ✅  Already up to date!                                     ║"
+        echo "║                                                              ║"
+        echo "║  No changes detected in either repository.                   ║"
+        echo "║  Use --force to upgrade anyway:                              ║"
+        echo "║    sudo bash upgrade.sh --force                              ║"
+        echo "╚══════════════════════════════════════════════════════════════╝"
+        echo ""
+        exit 0
+    fi
+
+    log_ok "Updates available — proceeding with upgrade"
+}
+
+# === Save Deployed SHAs ===
+save_deployed_shas() {
+    log_info "Saving deployed version info..."
+    local sha
+    sha=$(curl -s "$BACKEND_API_URL" | grep '"sha"' | head -1 | sed 's/.*"sha": "\([a-f0-9]*\)".*/\1/' 2>/dev/null) || true
+    [[ -n "$sha" ]] && echo "$sha" > "$BACKEND_SHA_FILE"
+
+    sha=$(curl -s "$UI_API_URL" | grep '"sha"' | head -1 | sed 's/.*"sha": "\([a-f0-9]*\)".*/\1/' 2>/dev/null) || true
+    [[ -n "$sha" ]] && echo "$sha" > "$UI_SHA_FILE"
+
+    log_ok "Version info saved"
 }
 
 # === Backup Config ===
@@ -272,8 +336,8 @@ print_success() {
     echo "╔══════════════════════════════════════════════════════════════╗"
     echo "║  ✅  Upgrade Complete!                                       ║"
     echo "║                                                              ║"
-    echo "║  Backend running at:  http://localhost:3000                  ║"
-    echo "║  Frontend running at: http://localhost:${UI_PORT}            ║"
+    echo "║  Frontend:  http://haus.local                                ║"
+    echo "║  Backend:   http://haus.local/api/v1                         ║"
     echo "║                                                              ║"
     echo "║  Useful commands:                                            ║"
     echo "║    sudo systemctl status  ${APP_NAME}                        ║"
@@ -290,6 +354,7 @@ print_success() {
 main() {
     print_banner
     preflight_checks
+    check_for_updates
     backup_config
     stop_service
     stop_ui_service
@@ -301,6 +366,7 @@ main() {
     configure_ui
     build_ui
     start_ui_service
+    save_deployed_shas
     print_success
 }
 
