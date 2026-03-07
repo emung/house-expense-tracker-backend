@@ -19,20 +19,24 @@ sudo bash install.sh
 
 Wait **5–10 minutes**. When finished:
 
-- **Backend API** is live at **http://localhost:3000**
-- **Frontend UI** is live at **http://localhost:8080**
+- **Frontend UI** is live at **http://haus.local**
+- **Backend API** is live at **http://haus.local/api/v1**
+
+> Any device on the same local network can access the UI by opening `http://haus.local` in a browser.
 
 ---
 
 ## What Gets Installed
 
-| Component            | Details                                                                    |
-| -------------------- | -------------------------------------------------------------------------- |
-| **Node.js 20**       | Via NodeSource APT repository                                              |
-| **PostgreSQL**       | Database server with a dedicated `house_app` user                          |
-| **NestJS Backend**   | Downloaded from GitHub, built and deployed to `/opt/house-expense-tracker` |
-| **React Native UI**  | Downloaded from GitHub, installed to `/opt/house-expense-tracker-ui`       |
-| **systemd services** | Two services auto-start backend and frontend on boot                       |
+| Component            | Details                                                                               |
+| -------------------- | ------------------------------------------------------------------------------------- |
+| **Node.js 20**       | Via NodeSource APT repository                                                         |
+| **PostgreSQL**       | Database server with a dedicated `house_app` user                                     |
+| **NestJS Backend**   | Downloaded from GitHub, built and deployed to `/opt/house-expense-tracker`            |
+| **React Native UI**  | Downloaded from GitHub, built as static web export to `/opt/house-expense-tracker-ui` |
+| **nginx**            | Reverse proxy — serves UI on port 80 and forwards `/api/` to the backend              |
+| **avahi-daemon**     | mDNS — broadcasts `haus.local` on the local network                                   |
+| **systemd services** | Two services auto-start backend and frontend on boot                                  |
 
 ## Installation Steps
 
@@ -54,6 +58,8 @@ The script performs these steps sequentially, aborting on any failure:
 14. **Download UI** — Fetches and extracts the React Native frontend from GitHub
 15. **Build UI** — Runs `npm install`, builds a static web export with `expo export`
 16. **UI systemd service** — Creates, enables, and starts the frontend service (static files served on port 8080)
+17. **Hostname & mDNS** — Sets hostname to `haus`, enables avahi-daemon to broadcast `haus.local`
+18. **nginx reverse proxy** — Routes `http://haus.local` → UI and `http://haus.local/api/` → backend
 
 ## Default Configuration
 
@@ -62,7 +68,8 @@ The script performs these steps sequentially, aborting on any failure:
 | Backend install path  | `/opt/house-expense-tracker`           |
 | Frontend install path | `/opt/house-expense-tracker-ui`        |
 | Backend port          | `3000`                                 |
-| Frontend port         | `8080`                                 |
+| Frontend port         | `8080` (proxied via nginx on port 80)  |
+| Local network URL     | `http://haus.local`                    |
 | Database name         | `house_expenses`                       |
 | Database user         | `house_app`                            |
 | Database password     | Auto-generated (32-char random string) |
@@ -86,6 +93,11 @@ sudo systemctl status  house-expense-tracker-ui
 sudo systemctl restart house-expense-tracker-ui
 sudo systemctl stop    house-expense-tracker-ui
 sudo journalctl -u house-expense-tracker-ui -f
+
+# Nginx
+sudo systemctl status  nginx
+sudo systemctl restart nginx
+sudo nginx -t  # test configuration
 ```
 
 ## Upgrading
@@ -174,6 +186,11 @@ sudo systemctl stop house-expense-tracker house-expense-tracker-ui
 sudo systemctl disable house-expense-tracker house-expense-tracker-ui
 sudo rm /etc/systemd/system/house-expense-tracker.service /etc/systemd/system/house-expense-tracker-ui.service
 sudo systemctl daemon-reload
+
+# Remove nginx config
+sudo rm -f /etc/nginx/sites-enabled/house-expense-tracker /etc/nginx/sites-available/house-expense-tracker
+sudo ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+sudo systemctl reload nginx
 
 # Remove the applications
 sudo rm -rf /opt/house-expense-tracker /opt/house-expense-tracker-ui
