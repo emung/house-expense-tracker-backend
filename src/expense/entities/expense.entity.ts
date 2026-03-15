@@ -37,4 +37,7 @@ export class Expense {
 
   @Column({ name: 'user_id', type: 'int' })
   userId: number;
+
+  @Column({ name: 'is_refund', type: 'boolean', default: 'false' })
+  isRefund: boolean;
 }
