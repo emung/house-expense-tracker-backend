@@ -33,4 +33,8 @@ export class ExpenseOutput {
   @Expose()
   @ApiProperty()
   userId: number;
+
+  @Expose()
+  @ApiProperty()
+  isRefund: boolean;
 }
