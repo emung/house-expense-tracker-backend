@@ -12,5 +12,9 @@ export class CurrencySumOutput {
 
   @Expose()
   @ApiProperty()
+  refundSum: number;
+
+  @Expose()
+  @ApiProperty()
   count: number;
 }

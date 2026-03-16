@@ -85,16 +85,21 @@ export class ExpenseService {
   }
 
   getExpensesSum(expenses: Expense[]): CurrencySumOutput[] {
-    const sumsByCurrency = new Map<string, { sum: number; count: number }>();
+    const sumsByCurrency = new Map<string, { nonRefundSum: number; refundSum: number; count: number }>();
     for (const expense of expenses) {
-      const current = sumsByCurrency.get(expense.currency) ?? { sum: 0, count: 0 };
+      const current = sumsByCurrency.get(expense.currency) ?? { nonRefundSum: 0, refundSum: 0, count: 0 };
       sumsByCurrency.set(expense.currency, {
-        sum: current.sum + expense.amount,
+        nonRefundSum: expense.isRefund ? current.nonRefundSum : current.nonRefundSum + expense.amount,
+        refundSum: expense.isRefund ? current.refundSum + expense.amount : current.refundSum,
         count: current.count + 1,
       });
     }
-    return Array.from(sumsByCurrency.entries()).map(([currency, { sum, count }]) =>
-      plainToClass(CurrencySumOutput, { currency, sum, count }, { excludeExtraneousValues: true }),
+    return Array.from(sumsByCurrency.entries()).map(([currency, { nonRefundSum, refundSum, count }]) =>
+      plainToClass(
+        CurrencySumOutput,
+        { currency, sum: nonRefundSum - refundSum, refundSum, count },
+        { excludeExtraneousValues: true },
+      ),
     );
   }
 

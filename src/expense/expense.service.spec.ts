@@ -44,7 +44,7 @@ describe('ExpenseService', () => {
       const result = service.getExpensesSum(expenses);
 
       expect(result).toHaveLength(1);
-      expect(result[0]).toMatchObject({ currency: 'EUR', sum: 150 });
+      expect(result[0]).toMatchObject({ currency: 'EUR', sum: 150, refundSum: 0 });
     });
 
     it('should return separate sums for each currency', () => {
@@ -61,7 +61,30 @@ describe('ExpenseService', () => {
       const eurSum = result.find((s) => s.currency === 'EUR');
       const ronSum = result.find((s) => s.currency === 'RON');
       expect(eurSum?.sum).toBe(150);
+      expect(eurSum?.refundSum).toBe(0);
       expect(ronSum?.sum).toBe(500);
+      expect(ronSum?.refundSum).toBe(0);
+    });
+
+    it('should subtract refund from sum and expose refundSum', () => {
+      const expenses = [
+        makeExpense(100, Currency.EUR),
+        makeExpense(30, Currency.EUR, true),
+      ];
+
+      const result = service.getExpensesSum(expenses);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({ currency: 'EUR', sum: 70, refundSum: 30, count: 2 });
+    });
+
+    it('should return negative sum when all expenses are refunds', () => {
+      const expenses = [makeExpense(50, Currency.EUR, true)];
+
+      const result = service.getExpensesSum(expenses);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({ currency: 'EUR', sum: -50, refundSum: 50, count: 1 });
     });
   });
 
@@ -94,7 +117,7 @@ describe('ExpenseService', () => {
   });
 });
 
-function makeExpense(amount: number, currency: Currency): Expense {
+function makeExpense(amount: number, currency: Currency, isRefund = false): Expense {
   const expense = new Expense();
   expense.id = Math.floor(Math.random() * 1000);
   expense.amount = amount;
@@ -104,5 +127,6 @@ function makeExpense(amount: number, currency: Currency): Expense {
   expense.category = 'Test';
   expense.recipient = 'Test';
   expense.userId = 1;
+  expense.isRefund = isRefund;
   return expense;
 }
