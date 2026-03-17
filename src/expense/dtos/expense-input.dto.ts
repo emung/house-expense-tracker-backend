@@ -35,11 +35,6 @@ export class CreateExpenseInput {
 
   @ApiProperty()
   @IsNotEmpty()
-  @IsNumber()
-  userId: number;
-
-  @ApiProperty()
-  @IsNotEmpty()
   @IsBoolean()
   isRefund: boolean;
 }
@@ -69,11 +64,6 @@ export class UpdateExpenseInput {
   @IsNotEmpty()
   @IsEnum(Currency)
   currency: Currency;
-
-  @ApiProperty()
-  @IsNotEmpty()
-  @IsNumber()
-  userId: number;
 
   @ApiProperty()
   @IsNotEmpty()

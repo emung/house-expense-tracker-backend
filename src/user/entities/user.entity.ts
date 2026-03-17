@@ -1,7 +1,6 @@
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from 'typeorm';
 
 import { Article } from '../../article/entities/article.entity';
-import { Expense } from '../../expense/entities/expense.entity';
 
 @Entity('users')
 export class User {
@@ -37,6 +36,4 @@ export class User {
   @OneToMany(() => Article, (article) => article.author)
   articles: Article[];
 
-  @OneToMany(() => Expense, (expense) => expense.user)
-  expenses: Expense[];
 }

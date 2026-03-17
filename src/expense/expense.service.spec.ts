@@ -126,7 +126,6 @@ function makeExpense(amount: number, currency: Currency, isRefund = false): Expe
   expense.description = 'Test';
   expense.category = 'Test';
   expense.recipient = 'Test';
-  expense.userId = 1;
   expense.isRefund = isRefund;
   return expense;
 }
