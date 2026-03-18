@@ -125,6 +125,13 @@ export class ExpenseController {
       res.setHeader('Content-Type', 'text/csv');
       res.setHeader('Content-Disposition', `attachment; filename="expenses-${today}.csv"`);
 
+      csvStream.on('error', (err) => {
+        if (!res.headersSent) {
+          res.status(500).json({ statusCode: 500, message: err.message });
+        } else {
+          res.end();
+        }
+      });
       csvStream.pipe(res);
     } catch (error: any) {
       const status = error.status || error.statusCode || 500;
