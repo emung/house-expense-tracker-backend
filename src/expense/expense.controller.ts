@@ -10,9 +10,11 @@ import {
   Patch,
   Post,
   Query,
+  Res,
   UseInterceptors,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Response } from 'express';
 
 import { BaseApiErrorResponse } from '../shared/dtos/base-api-response.dto';
 import { AppLogger } from '../shared/logger/logger.service';
@@ -105,6 +107,31 @@ export class ExpenseController {
         `An error occured during the operation 'getByDescription': ${error.message}`,
         error.status || error.statusCode || 500,
       );
+    }
+  }
+
+  @Get('export')
+  @ApiOperation({ summary: 'Export all expenses as CSV' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'CSV file download',
+  })
+  async exportCsv(@Res() res: Response): Promise<void> {
+    try {
+      const ctx = new RequestContext();
+      const today = new Date().toISOString().split('T')[0];
+      const csvStream = await this.expenseService.exportExpensesToCsv(ctx);
+
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="expenses-${today}.csv"`);
+
+      csvStream.pipe(res);
+    } catch (error: any) {
+      const status = error.status || error.statusCode || 500;
+      res.status(status).json({
+        statusCode: status,
+        message: `An error occured during the operation 'exportCsv': ${error.message}`,
+      });
     }
   }
 
