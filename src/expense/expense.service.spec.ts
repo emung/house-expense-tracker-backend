@@ -7,6 +7,7 @@ import { ExpenseService } from './expense.service';
 
 describe('ExpenseService', () => {
   let service: ExpenseService;
+  let mockedRepository: jest.Mocked<ExpenseRepository>;
   const mockedLogger = { setContext: jest.fn(), log: jest.fn() };
 
   beforeEach(async () => {
@@ -27,6 +28,7 @@ describe('ExpenseService', () => {
     }).compile();
 
     service = moduleRef.get<ExpenseService>(ExpenseService);
+    mockedRepository = moduleRef.get<ExpenseRepository>(ExpenseRepository) as jest.Mocked<ExpenseRepository>;
   });
 
   describe('getExpensesSum', () => {
@@ -115,6 +117,57 @@ describe('ExpenseService', () => {
       expect(ronSum?.sum).toBe(200);
     });
   });
+
+  describe('exportExpensesToCsv', () => {
+    it('should return CSV with header and data rows ordered by date descending', async () => {
+      const expenses = [
+        makeExpenseWithDetails(100.5, Currency.EUR, false, new Date('2025-06-15'), 'Groceries', 'Food', 'Lidl'),
+        makeExpenseWithDetails(30, Currency.RON, true, new Date('2025-07-20'), 'Return item', 'Shopping', 'Amazon'),
+      ];
+
+      mockedRepository.getAllExpenses.mockResolvedValue(expenses);
+
+      const ctx = { requestID: 'test', url: '', ip: '', user: null } as any;
+      const stream = await service.exportExpensesToCsv(ctx);
+
+      const csv = await streamToString(stream);
+      const lines = csv.trim().split('\n');
+
+      expect(lines[0]).toBe('Amount,Date,Description,Category,Recipient,Currency,Type');
+      // Date descending: 2025-07-20 first, then 2025-06-15
+      expect(lines[1]).toBe('30,2025-07-20,Return item,Shopping,Amazon,RON,Refund');
+      expect(lines[2]).toBe('100.5,2025-06-15,Groceries,Food,Lidl,EUR,Expense');
+    });
+
+    it('should return header-only CSV when no expenses exist', async () => {
+      mockedRepository.getAllExpenses.mockResolvedValue([]);
+
+      const ctx = { requestID: 'test', url: '', ip: '', user: null } as any;
+      const stream = await service.exportExpensesToCsv(ctx);
+
+      const csv = await streamToString(stream);
+      const lines = csv.trim().split('\n');
+
+      expect(lines).toHaveLength(1);
+      expect(lines[0]).toBe('Amount,Date,Description,Category,Recipient,Currency,Type');
+    });
+
+    it('should quote fields containing commas', async () => {
+      const expenses = [
+        makeExpenseWithDetails(50, Currency.EUR, false, new Date('2025-08-01'), 'Apples, bananas', 'Food, Drink', 'Store'),
+      ];
+
+      mockedRepository.getAllExpenses.mockResolvedValue(expenses);
+
+      const ctx = { requestID: 'test', url: '', ip: '', user: null } as any;
+      const stream = await service.exportExpensesToCsv(ctx);
+
+      const csv = await streamToString(stream);
+      const lines = csv.trim().split('\n');
+
+      expect(lines[1]).toBe('50,2025-08-01,"Apples, bananas","Food, Drink",Store,EUR,Expense');
+    });
+  });
 });
 
 function makeExpense(amount: number, currency: Currency, isRefund = false): Expense {
@@ -128,4 +181,34 @@ function makeExpense(amount: number, currency: Currency, isRefund = false): Expe
   expense.recipient = 'Test';
   expense.isRefund = isRefund;
   return expense;
+}
+
+function makeExpenseWithDetails(
+  amount: number,
+  currency: Currency,
+  isRefund: boolean,
+  date: Date,
+  description: string,
+  category: string,
+  recipient: string,
+): Expense {
+  const expense = new Expense();
+  expense.id = Math.floor(Math.random() * 1000);
+  expense.amount = amount;
+  expense.currency = currency;
+  expense.date = date;
+  expense.description = description;
+  expense.category = category;
+  expense.recipient = recipient;
+  expense.isRefund = isRefund;
+  return expense;
+}
+
+function streamToString(stream: import('stream').Readable): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    stream.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+    stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
+    stream.on('error', reject);
+  });
 }
