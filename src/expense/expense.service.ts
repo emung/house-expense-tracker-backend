@@ -1,5 +1,7 @@
+import { format } from '@fast-csv/format';
 import { Injectable } from '@nestjs/common';
 import { plainToClass } from 'class-transformer';
+import { Readable } from 'stream';
 import { DeleteResult } from 'typeorm';
 
 import { AppLogger } from '../shared/logger/logger.service';
@@ -82,6 +84,33 @@ export class ExpenseService {
     this.logger.log(ctx, 'Fetching all distinct categories');
     const categories: string[] = await this.repository.getAllDistinctCategories();
     return categories;
+  }
+
+  async exportExpensesToCsv(ctx: RequestContext): Promise<Readable> {
+    this.logger.log(ctx, 'Exporting expenses to CSV');
+    const expenses: Expense[] = await this.repository.getAllExpenses();
+
+    expenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    const csvStream = format({
+      headers: ['Amount', 'Date', 'Description', 'Category', 'Recipient', 'Currency', 'Type'],
+      alwaysWriteHeaders: true,
+    });
+
+    for (const expense of expenses) {
+      csvStream.write({
+        Amount: expense.amount,
+        Date: expense.date.toISOString().split('T')[0],
+        Description: expense.description,
+        Category: expense.category,
+        Recipient: expense.recipient,
+        Currency: expense.currency,
+        Type: expense.isRefund ? 'Refund' : 'Expense',
+      });
+    }
+
+    csvStream.end();
+    return csvStream;
   }
 
   getExpensesSum(expenses: Expense[]): CurrencySumOutput[] {
