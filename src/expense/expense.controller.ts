@@ -23,6 +23,7 @@ import { ExpensesOutput } from './dtos/expense-multiple-output.dto';
 import { ExpenseOutput } from './dtos/expense-output.dto';
 import { GetByCategoryQueryDto } from './dtos/get-by-category-query.dto';
 import { GetByDescriptionQueryDto } from './dtos/get-by-description-query.dto';
+import { SearchQueryDto } from './dtos/search-query.dto';
 import { ExpenseService } from './expense.service';
 
 @ApiTags('Expenses')
@@ -103,6 +104,31 @@ export class ExpenseController {
     } catch (error: any) {
       throw new HttpException(
         `An error occured during the operation 'getByDescription': ${error.message}`,
+        error.status || error.statusCode || 500,
+      );
+    }
+  }
+
+  @Get('search')
+  @ApiOperation({
+    summary: 'Search expenses by description or recipient',
+    description: 'Search expenses by description or recipient. Case insensitive. ILIKE is used on both fields.',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: ExpenseOutput,
+    isArray: true,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    type: BaseApiErrorResponse,
+  })
+  async search(ctx: RequestContext, @Query() query: SearchQueryDto): Promise<ExpensesOutput> {
+    try {
+      return this.expenseService.search(ctx, query.q);
+    } catch (error: any) {
+      throw new HttpException(
+        `An error occured during the operation 'search': ${error.message}`,
         error.status || error.statusCode || 500,
       );
     }

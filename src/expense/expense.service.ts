@@ -35,6 +35,12 @@ export class ExpenseService {
     return this.getExpensesWithSumOrReturnExpensesWhenEmpty(expenses);
   }
 
+  async search(ctx: RequestContext, q: string) {
+    this.logger.log(ctx, `Searching expenses for: ${q}`);
+    const expenses: Expense[] = await this.repository.search(q);
+    return this.getExpensesWithSumOrReturnExpensesWhenEmpty(expenses);
+  }
+
   async getByDescription(ctx: RequestContext, description: string) {
     this.logger.log(ctx, `Fetching expenses for description: ${description}`);
     const expenses: Expense[] = await this.repository.getByDescription(description);
