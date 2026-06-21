@@ -18,7 +18,7 @@ export class ExpenseRepository extends Repository<Expense> {
   }
 
   async getByCategory(category: string): Promise<Expense[]> {
-    const expenses = await this.find({ where: { category } });
+    const expenses = await this.find({ where: { category }, order: { date: 'DESC' } });
     if (expenses.length === 0) {
       return [];
     }
@@ -26,7 +26,7 @@ export class ExpenseRepository extends Repository<Expense> {
   }
 
   async getByDescription(description: string): Promise<Expense[]> {
-    const expenses = await this.find({ where: { description: ILike(`%${description}%`) } });
+    const expenses = await this.find({ where: { description: ILike(`%${description}%`) }, order: { date: 'DESC' } });
     if (expenses.length === 0) {
       return [];
     }
@@ -36,6 +36,7 @@ export class ExpenseRepository extends Repository<Expense> {
   async search(q: string): Promise<Expense[]> {
     const expenses = await this.find({
       where: [{ description: ILike(`%${q}%`) }, { recipient: ILike(`%${q}%`) }],
+      order: { date: 'DESC' },
     });
     if (expenses.length === 0) {
       return [];
